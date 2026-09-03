@@ -5,10 +5,10 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Upt\DashboardController;
 use App\Http\Controllers\Upt\StokController as UptStokController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Upt\PermohonanBantuanController as UptPermohonanController;
+use App\Http\Controllers\Upt\PelaporanDistribusiController as UptPelaporanController;
 
-// ==========================================
 // LANDING / BERANDA (General - publik)
-// ==========================================
 Route::get('/', function () {
     return view('general.beranda');
 })->name('landing');
@@ -39,9 +39,7 @@ Route::prefix('general')->name('general.')->group(function () {
     })->name('distribusi.pelaporan')->middleware('auth');
 });
 
-// ==========================================
 // AUTH
-// ==========================================
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -79,7 +77,22 @@ Route::middleware('role.upt')->prefix('upt')->name('upt.')->group(function () {
 
     Route::resource('stok', UptStokController::class)->except(['show']);
 
-    Route::get('/permohonan-bantuan', fn () => 'Permohonan Bantuan (UPT) — akan kita buat nanti')->name('permohonan');
+    Route::prefix('permohonan-bantuan')->name('permohonan.')->group(function () {
+        Route::get('/', [UptPermohonanController::class, 'index'])->name('index');
+        Route::get('/create', [UptPermohonanController::class, 'create'])->name('create');
+        Route::post('/', [UptPermohonanController::class, 'store'])->name('store');
+        Route::get('/{permohonan}', [UptPermohonanController::class, 'show'])->name('show');
+        Route::get('/{permohonan}/edit', [UptPermohonanController::class, 'edit'])->name('edit');
+        Route::put('/{permohonan}', [UptPermohonanController::class, 'update'])->name('update');
+        Route::delete('/{permohonan}', [UptPermohonanController::class, 'destroy'])->name('destroy');
+    });
 
-    Route::get('/distribusi/pelaporan', fn () => 'Pelaporan Distribusi (UPT) — akan kita buat nanti')->name('distribusi.pelaporan');
+    Route::prefix('distribusi/pelaporan')->name('distribusi.pelaporan.')->group(function () {
+        Route::get('/', [UptPelaporanController::class, 'index'])->name('index');
+        Route::get('/create', [UptPelaporanController::class, 'create'])->name('create');
+        Route::post('/', [UptPelaporanController::class, 'store'])->name('store');
+        Route::get('/{pelaporan}/edit', [UptPelaporanController::class, 'edit'])->name('edit');
+        Route::put('/{pelaporan}', [UptPelaporanController::class, 'update'])->name('update');
+        Route::delete('/{pelaporan}', [UptPelaporanController::class, 'destroy'])->name('destroy');
+    });
 });

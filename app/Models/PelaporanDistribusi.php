@@ -16,7 +16,6 @@ class PelaporanDistribusi extends Model
         'bukti_foto',
         'koordinat',
         'keterangan',
-        'status',
         'user_id',
     ];
 

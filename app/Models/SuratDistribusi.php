@@ -16,6 +16,7 @@ class SuratDistribusi extends Model
         'tujuan',
         'petugas',
         'user_id',
+        'permohonan_bantuan_id',
     ];
 
     protected function casts(): array
@@ -38,5 +39,10 @@ class SuratDistribusi extends Model
     public function pelaporanDistribusi()
     {
         return $this->hasOne(PelaporanDistribusi::class, 'surat_distribusi_id');
+    }
+
+    public function permohonanBantuan()
+    {
+        return $this->belongsTo(PermohonanBantuan::class, 'permohonan_bantuan_id');
     }
 }

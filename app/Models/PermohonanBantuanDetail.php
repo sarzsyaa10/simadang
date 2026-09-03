@@ -12,6 +12,8 @@ class PermohonanBantuanDetail extends Model
         'permohonan_bantuan_id',
         'barang_id',
         'jumlah',
+        'status',
+        'keterangan',
     ];
 
     public function permohonanBantuan()
