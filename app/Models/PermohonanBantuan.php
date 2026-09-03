@@ -39,4 +39,30 @@ class PermohonanBantuan extends Model
     {
         return $query->where('status', 'pending');
     }
+
+    /**
+     * Hitung ulang status header berdasarkan status semua barang di
+     * permohonan ini. Dipanggil setelah admin setuju/tolak salah satu barang.
+     *
+     * - Masih ada barang yang belum diputuskan -> tetap 'pending' (Diajukan)
+     * - Semua barang statusnya sama (semua disetujui / semua ditolak) -> ikut itu
+     * - Campuran (sebagian disetujui, sebagian ditolak) -> 'sebagian'
+     */
+    public function refreshStatus(): void
+    {
+        $statuses = $this->permohonanBantuanDetail()->pluck('status');
+
+        if ($statuses->isEmpty() || $statuses->contains('pending')) {
+            $status = 'pending';
+        } elseif ($statuses->unique()->count() === 1) {
+            $status = $statuses->first();
+        } else {
+            $status = 'sebagian';
+        }
+
+        $this->update([
+            'status' => $status,
+            'diverifikasi_oleh' => auth()->id(),
+        ]);
+    }
 }
