@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\StokController as AdminStokController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Upt\DashboardController;
 use App\Http\Controllers\Upt\StokController as UptStokController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\PermohonanBantuanController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Upt\PermohonanBantuanController as UptPermohonanController;
 use App\Http\Controllers\Upt\PelaporanDistribusiController as UptPelaporanController;
@@ -59,14 +61,23 @@ Route::middleware('role.admin')->prefix('admin')->name('admin.')->group(function
 
     Route::get('/laporan', fn () => 'Laporan (Admin) — akan kita buat nanti')->name('laporan');
 
-    Route::get('/permohonan-bantuan', fn () => 'Permohonan Bantuan (Admin) — akan kita buat nanti')->name('permohonan');
+    // Permohonan Bantuan
+    Route::get('/permohonan-bantuan', [PermohonanBantuanController::class, 'index'])->name('permohonan');
+    Route::get('/permohonan-bantuan/{permohonan_bantuan}', [PermohonanBantuanController::class, 'show'])->name('permohonan.show');
+    Route::delete('/permohonan-bantuan/{permohonan_bantuan}', [PermohonanBantuanController::class, 'destroy'])->name('permohonan.destroy');
+
+    Route::patch('/permohonan-bantuan/barang/{item}/setuju', [PermohonanBantuanController::class, 'setujuItem'])->name('permohonan.item.setuju');
+    Route::patch('/permohonan-bantuan/barang/{item}/tolak', [PermohonanBantuanController::class, 'tolakItem'])->name('permohonan.item.tolak');
 
     Route::get('/distribusi', fn () => 'Distribusi (Admin) — akan kita buat nanti')->name('distribusi');
     Route::get('/distribusi/pelaporan', fn () => 'Pelaporan Distribusi (Admin) — akan kita buat nanti')->name('distribusi.pelaporan');
 
     Route::get('/data-user', fn () => 'Data User — akan kita buat nanti')->name('data-user.index');
     Route::get('/data-gudang', fn () => 'Data Gudang — akan kita buat nanti')->name('data-gudang.index');
-    Route::get('/setting', fn () => 'Setting — akan kita buat nanti')->name('setting');
+
+    // Setting
+    Route::get('/setting', [SettingController::class, 'edit'])->name('setting');
+    Route::put('/setting', [SettingController::class, 'update'])->name('setting.update');
 });
 
 // ==========================================
