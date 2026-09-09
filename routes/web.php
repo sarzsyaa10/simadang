@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\DistribusiController as AdminDistribusiController;
+use App\Http\Controllers\Admin\PelaporanDistribusiController as AdminPelaporanDistribusiController;
 use App\Http\Controllers\Admin\StokController as AdminStokController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Upt\DashboardController;
@@ -69,8 +71,24 @@ Route::middleware('role.admin')->prefix('admin')->name('admin.')->group(function
     Route::patch('/permohonan-bantuan/barang/{item}/setuju', [PermohonanBantuanController::class, 'setujuItem'])->name('permohonan.item.setuju');
     Route::patch('/permohonan-bantuan/barang/{item}/tolak', [PermohonanBantuanController::class, 'tolakItem'])->name('permohonan.item.tolak');
 
-    Route::get('/distribusi', fn () => 'Distribusi (Admin) — akan kita buat nanti')->name('distribusi');
-    Route::get('/distribusi/pelaporan', fn () => 'Pelaporan Distribusi (Admin) — akan kita buat nanti')->name('distribusi.pelaporan');
+    Route::get('/distribusi', [AdminDistribusiController::class, 'index'])->name('distribusi');
+    Route::get('/distribusi/create', [AdminDistribusiController::class, 'create'])->name('distribusi.create');
+    Route::post('/distribusi', [AdminDistribusiController::class, 'store'])->name('distribusi.store');
+    Route::get('/distribusi/{distribusi}', [AdminDistribusiController::class, 'show'])->name('distribusi.show');
+    Route::get('/distribusi/{distribusi}/edit', [AdminDistribusiController::class, 'edit'])->name('distribusi.edit');
+    Route::put('/distribusi/{distribusi}', [AdminDistribusiController::class, 'update'])->name('distribusi.update');
+    Route::delete('/distribusi/{distribusi}', [AdminDistribusiController::class, 'destroy'])->name('distribusi.destroy');
+
+    Route::get('/distribusi/{distribusi}/item/create', [AdminDistribusiController::class, 'createDetail'])->name('distribusi.detail.create');
+    Route::post('/distribusi/{distribusi}/item', [AdminDistribusiController::class, 'storeDetail'])->name('distribusi.detail.store');
+    Route::get('/distribusi/{distribusi}/item/{detail}/edit', [AdminDistribusiController::class, 'editDetail'])->name('distribusi.detail.edit');
+    Route::put('/distribusi/{distribusi}/item/{detail}', [AdminDistribusiController::class, 'updateDetail'])->name('distribusi.detail.update');
+    Route::delete('/distribusi/{distribusi}/item/{detail}', [AdminDistribusiController::class, 'destroyDetail'])->name('distribusi.detail.destroy');
+
+    Route::get('/distribusi-pelaporan', [AdminPelaporanDistribusiController::class, 'index'])->name('distribusi.pelaporan');
+    Route::get('/distribusi-pelaporan/{pelaporan}', [AdminPelaporanDistribusiController::class, 'show'])->name('distribusi.pelaporan.show');
+    Route::post('/distribusi-pelaporan/{pelaporan}/terima', [AdminPelaporanDistribusiController::class, 'terima'])->name('distribusi.pelaporan.terima');
+    Route::post('/distribusi-pelaporan/{pelaporan}/tolak', [AdminPelaporanDistribusiController::class, 'tolak'])->name('distribusi.pelaporan.tolak');
 
     Route::get('/data-user', fn () => 'Data User — akan kita buat nanti')->name('data-user.index');
     Route::get('/data-gudang', fn () => 'Data Gudang — akan kita buat nanti')->name('data-gudang.index');
