@@ -48,7 +48,7 @@ class AuthController extends Controller
     protected function redirectByRole()
     {
         return match (auth()->user()->role) {
-            'admin' => redirect()->route('admin.stok.index'),
+            'admin' => redirect()->route('admin.beranda'),
             'upt'   => redirect()->route('upt.beranda'),
             default => redirect()->route('landing'),
         };

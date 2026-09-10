@@ -31,6 +31,11 @@ class Barang extends Model
         return $this->stokBarang()->sum('jumlah');
     }
 
+    public function getFotoUrlAttribute()
+    {
+        return $this->foto ? route('media.show', $this->foto) : null;
+    }
+
     public function scopeLogistik($query)
     {
         return $query->where('kategori', 'logistik_non_permakanan');
