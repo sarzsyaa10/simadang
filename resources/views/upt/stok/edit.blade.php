@@ -23,37 +23,73 @@
         </div>
 
         <div class="p-5">
-        <form method="POST" action="{{ route('upt.stok.update', $barang->id) }}" enctype="multipart/form-data" class="space-y-4">
+        <form method="POST" action="{{ route('upt.stok.update', $barang->id) }}" enctype="multipart/form-data" class="space-y-4"
+            x-data="{ preview: null }">
+            
             @csrf @method('PUT')
-
-            <label class="block text-sm font-semibold text-gray-700 mb-1">
-                    Foto Saat Ini
-            </label>
-            @if ($barang->foto_url)
-                <img src="{{ $barang->foto_url }}" class="w-32 h-32 object-cover rounded">
-            @endif
-
+            
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Foto Barang</label>
+
+                @if ($barang->foto_url)
+                    <img src="{{ $barang->foto_url }}"
+                        class="w-32 h-32 object-cover rounded border border-gray-200 mb-3">
+                @endif
+
+                <label class="block text-xs text-gray-500 mb-1">
                     Foto Baru (Opsional)
                 </label>
 
-                <div class="flex items-center w-full border border-gray-300 rounded px-3 py-2 bg-white">
-                    <label for="foto"
-                        class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm text-gray-700 cursor-pointer hover:bg-gray-200 transition">
-                        Pilih Foto
-                    </label>
+                <div class="border border-gray-300 rounded px-3 py-2 bg-white">
 
-                    <span id="file-name" class="ml-3 text-sm text-gray-500 truncate">
-                        Belum ada foto dipilih
-                    </span>
+                    {{-- Sebelum memilih foto --}}
+                    <div x-show="!preview" class="flex items-center">
+                        <label for="foto"
+                            class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm text-gray-700 cursor-pointer hover:bg-gray-200 transition">
+                            Pilih Foto
+                        </label>
 
-                    <input type="file"
-                        id="foto"
+                        <span id="file-name" class="ml-3 text-sm text-gray-500 truncate">
+                            Belum ada foto dipilih
+                        </span>
+                    </div>
+
+                    {{-- Setelah memilih foto --}}
+                    <div x-show="preview" class="flex items-center gap-3">
+                        <img :src="preview"
+                            class="w-20 h-20 object-cover rounded border border-gray-200">
+
+                        <div class="flex flex-col gap-1">
+                            <span id="file-name-preview"
+                                class="text-sm text-gray-600 truncate max-w-xs"></span>
+
+                            <label for="foto"
+                                class="text-xs text-blue-600 hover:text-blue-800 cursor-pointer">
+                                Ganti Foto
+                            </label>
+                        </div>
+                    </div>
+
+                    <input id="foto"
+                        type="file"
                         name="foto"
                         accept="image/*"
                         class="hidden"
-                        onchange="document.getElementById('file-name').textContent = this.files.length ? this.files[0].name : 'Belum ada file dipilih'">
+                        @change="
+                            preview = $event.target.files.length
+                                ? URL.createObjectURL($event.target.files[0])
+                                : null;
+
+                            document.getElementById('file-name').textContent =
+                                $event.target.files.length
+                                    ? $event.target.files[0].name
+                                    : 'Belum ada file dipilih';
+
+                            document.getElementById('file-name-preview').textContent =
+                                $event.target.files.length
+                                    ? $event.target.files[0].name
+                                    : '';
+                        ">
                 </div>
 
                 @error('foto')

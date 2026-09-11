@@ -8,6 +8,7 @@ use App\Http\Controllers\Upt\MutasiController as UptMutasiController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\General\StokController as GeneralStokController;
+use App\Http\Controllers\Admin\MutasiController as AdminMutasiController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -72,6 +73,16 @@ Route::middleware('role.admin')->prefix('admin')->name('admin.')->group(function
     Route::get('/', [AdminDashboardController::class, 'index'])->name('beranda');
 
     Route::resource('stok', AdminStokController::class)->except(['show']);
+
+    Route::prefix('mutasi')->name('mutasi.')->group(function () {
+    Route::get('/', [AdminMutasiController::class, 'index'])->name('index');
+    Route::get('/masuk/tambah', [AdminMutasiController::class, 'createMasuk'])->name('create.masuk');
+    Route::get('/keluar/tambah', [AdminMutasiController::class, 'createKeluar'])->name('create.keluar');
+    Route::post('/', [AdminMutasiController::class, 'store'])->name('store');
+    Route::get('/{mutasi}/edit', [AdminMutasiController::class, 'edit'])->name('edit');
+    Route::put('/{mutasi}', [AdminMutasiController::class, 'update'])->name('update');
+    Route::delete('/{mutasi}', [AdminMutasiController::class, 'destroy'])->name('destroy');
+});
 
     Route::get('/laporan', fn () => 'Laporan (Admin) — akan kita buat nanti')->name('laporan');
 

@@ -80,15 +80,15 @@
             <table class="w-full text-sm text-left">
                 <thead class="bg-[#0f1f3d] text-white text-xs uppercase tracking-wide">
                     <tr>
-                        <th class="px-4 py-3">Foto</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Foto</th>
 
-                        <th class="px-4 py-3">
+                        <th class="px-4 py-3 whitespace-nowrap">
                             <a href="{{ request()->fullUrlWithQuery([
                                 'sort' => 'nama_barang',
                                 'direction' => ($sort === 'nama_barang' && $direction === 'asc') ? 'desc' : 'asc',
                                 'page' => 1,
                             ]) }}"
-                            class="inline-flex items-center gap-2 hover:text-blue-200">
+                            class="inline-flex items-center gap-1.5 hover:text-blue-200 whitespace-nowrap">
                                 Nama Barang
                                 <x-icon name="bxs:sort-alt" class="w-4 h-4" />
                             </a>
@@ -118,7 +118,7 @@
                             </a>
                         </th>
 
-                        <th class="px-4 py-3 text-right">Tindakan</th>
+                        <th class="px-4 py-3 pr-6 text-right whitespace-nowrap">Tindakan</th>
                     </tr>
                 </thead>
 

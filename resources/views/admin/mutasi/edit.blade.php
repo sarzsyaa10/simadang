@@ -41,18 +41,34 @@
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Barang</label>
-                <select name="barang_id" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                    @foreach ($barangList as $b)
-                        <option value="{{ $b->id }}" @selected(old('barang_id', $mutasi->barang_id) == $b->id)>{{ $b->nama_barang }} ({{ $b->satuan }})</option>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Gudang</label>
+                <select name="gudang_id" id="gudang_id" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                    @foreach ($gudangList as $g)
+                        <option value="{{ $g->id }}" @selected(old('gudang_id', $mutasi->gudang_id) == $g->id)>{{ $g->nama_gudang }}</option>
                     @endforeach
                 </select>
+                @error('gudang_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Barang</label>
+                <select name="barang_id" id="barang_id" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                    @foreach ($barangList as $b)
+                        <option value="{{ $b->id }}"
+                                data-satuan="{{ $b->satuan }}"
+                                data-gudang-stok='{{ json_encode($b->stok_per_gudang ?? []) }}'
+                                @selected(old('barang_id', $mutasi->barang_id) == $b->id)>
+                            {{ $b->nama_barang }} ({{ $b->satuan }})
+                        </option>
+                    @endforeach
+                </select>
+                <p id="stok-tersedia-hint" class="text-xs font-semibold text-blue-700 mt-1 hidden"></p>
                 @error('barang_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Arus</label>
-                <select name="arah" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                <select name="arah" id="arah_select" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
                     <option value="masuk" @selected(old('arah', $mutasi->area) === 'masuk')>Masuk</option>
                     <option value="keluar" @selected(old('arah', $mutasi->area) === 'keluar')>Keluar</option>
                 </select>
@@ -61,7 +77,7 @@
 
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Jumlah Barang</label>
-                <input type="number" name="jumlah" min="1" value="{{ old('jumlah', $mutasi->jumlah) }}" required
+                <input type="number" name="jumlah" id="jumlah" min="1" value="{{ old('jumlah', $mutasi->jumlah) }}" required
                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
                 @error('jumlah') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
             </div>
@@ -72,15 +88,77 @@
                 @error('keterangan') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Gudang</label>
-                <select name="gudang_id" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                    @foreach ($gudangList as $g)
-                        <option value="{{ $g->id }}" @selected(old('gudang_id', $mutasi->gudang_id) == $g->id)>{{ $g->nama_gudang }}</option>
-                    @endforeach
-                </select>
-                @error('gudang_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-            </div>
+            <script>
+                (function () {
+                    var selectGudang = document.getElementById('gudang_id');
+                    var selectBarang = document.getElementById('barang_id');
+                    var selectArah   = document.getElementById('arah_select');
+                    var inputJumlah  = document.getElementById('jumlah');
+                    var hint         = document.getElementById('stok-tersedia-hint');
+
+                    function stokDiGudang(opt, gudangId) {
+                        if (!opt || !gudangId) return null;
+                        var map = {};
+                        try { map = JSON.parse(opt.getAttribute('data-gudang-stok') || '{}'); } catch (e) {}
+                        return Object.prototype.hasOwnProperty.call(map, gudangId) ? parseInt(map[gudangId], 10) : null;
+                    }
+
+                    function isKeluar() {
+                        return selectArah.value === 'keluar';
+                    }
+
+                    function refreshDaftarBarang() {
+                        var gudangId   = selectGudang.value;
+                        var opsiBarang = Array.prototype.slice.call(selectBarang.querySelectorAll('option[data-gudang-stok]'));
+                        var nilaiLama  = selectBarang.value;
+                        var masihValid = false;
+
+                        opsiBarang.forEach(function (opt) {
+                            var stok     = stokDiGudang(opt, gudangId);
+                            var tersedia = !isKeluar() || (stok !== null && stok > 0);
+                            opt.hidden   = !tersedia;
+                            if (tersedia && opt.value === nilaiLama) {
+                                masihValid = true;
+                            }
+                        });
+
+                        if (isKeluar() && !masihValid) {
+                            selectBarang.value = '';
+                        }
+
+                        terapkanBatas();
+                    }
+
+                    function terapkanBatas() {
+                        var gudangId = selectGudang.value;
+                        var opt      = selectBarang.options[selectBarang.selectedIndex];
+                        var stok     = stokDiGudang(opt, gudangId);
+
+                        if (isKeluar() && opt && opt.value && stok !== null) {
+                            inputJumlah.setAttribute('max', stok);
+                            hint.textContent = 'Stok tersedia di gudang ini: ' + stok + ' ' + (opt.getAttribute('data-satuan') || '');
+                            hint.classList.remove('hidden');
+                        } else {
+                            inputJumlah.removeAttribute('max');
+                            hint.classList.add('hidden');
+                        }
+                    }
+
+                    function clampJumlah() {
+                        var max = parseInt(inputJumlah.getAttribute('max'), 10);
+                        if (!isNaN(max) && inputJumlah.value !== '' && parseInt(inputJumlah.value, 10) > max) {
+                            inputJumlah.value = max;
+                        }
+                    }
+
+                    selectGudang.addEventListener('change', function () { refreshDaftarBarang(); clampJumlah(); });
+                    selectBarang.addEventListener('change', function () { terapkanBatas(); clampJumlah(); });
+                    selectArah.addEventListener('change', function () { refreshDaftarBarang(); clampJumlah(); });
+                    inputJumlah.addEventListener('input', clampJumlah);
+
+                    refreshDaftarBarang();
+                })();
+            </script>
 
             <div class="flex justify-end gap-3 pt-2">
                 <a href="{{ route('admin.mutasi.index', ['kategori' => $mutasi->barang->kategori]) }}"

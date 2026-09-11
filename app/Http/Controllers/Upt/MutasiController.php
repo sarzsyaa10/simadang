@@ -8,6 +8,7 @@ use App\Models\MutasiBarang;
 use App\Models\StokBarang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class MutasiController extends Controller
 {
@@ -97,8 +98,16 @@ class MutasiController extends Controller
         $barangList = Barang::whereHas('stokBarang', function ($q) use ($gudangId) {
                 $q->where('gudang_id', $gudangId)->where('jumlah', '>', 0);
             })
+            ->with(['stokBarang' => function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            }])
             ->orderBy('nama_barang')
             ->get();
+
+        $barangList->each(function ($b) {
+            $b->stok_saat_ini = $b->stokBarang->first()->jumlah ?? 0;
+        });
+
         $gudang = auth()->user()->gudang;
         $arah   = 'keluar';
 
@@ -118,17 +127,32 @@ class MutasiController extends Controller
             'keterangan' => 'nullable|string|max:255',
         ]);
 
-        DB::transaction(function () use ($validated, $gudangId) {
-            $stok = StokBarang::firstOrCreate(
+        $disesuaikan = false;
+
+        DB::transaction(function () use ($validated, $gudangId, &$disesuaikan) {
+            $stok = StokBarang::lockForUpdate()->firstOrCreate(
                 ['barang_id' => $validated['barang_id'], 'gudang_id' => $gudangId],
                 ['jumlah' => 0]
             );
 
+            $jumlah = $validated['jumlah'];
+
             if ($validated['arah'] === 'keluar') {
-                abort_if($stok->jumlah < $validated['jumlah'], 422, 'Stok tidak mencukupi untuk mutasi keluar ini.');
-                $stok->decrement('jumlah', $validated['jumlah']);
+                if ($stok->jumlah <= 0) {
+                    throw ValidationException::withMessages([
+                        'jumlah' => 'Stok barang ini sudah habis di gudang anda, tidak bisa dikeluarkan.',
+                    ]);
+                }
+
+                if ($jumlah > $stok->jumlah) {
+                    // Jangan error: otomatis pas-kan ke jumlah maksimal yang tersedia.
+                    $jumlah = $stok->jumlah;
+                    $disesuaikan = true;
+                }
+
+                $stok->decrement('jumlah', $jumlah);
             } else {
-                $stok->increment('jumlah', $validated['jumlah']);
+                $stok->increment('jumlah', $jumlah);
             }
 
             MutasiBarang::create([
@@ -138,14 +162,16 @@ class MutasiController extends Controller
                 'tanggal'    => $validated['tanggal'],
                 'jam'        => $validated['jam'],
                 'area'       => $validated['arah'],
-                'jumlah'     => $validated['jumlah'],
+                'jumlah'     => $jumlah,
                 'keterangan' => $validated['keterangan'] ?? null,
             ]);
         });
 
-        return redirect()
-            ->route('upt.mutasi.index')
-            ->with('success', 'Mutasi barang berhasil disimpan.');
+        $redirect = redirect()->route('upt.mutasi.index');
+
+        return $disesuaikan
+            ? $redirect->with('warning', 'Jumlah yang kamu masukkan melebihi stok tersedia, jadi otomatis disesuaikan ke jumlah maksimal yang ada di gudang.')
+            : $redirect->with('success', 'Mutasi barang berhasil disimpan.');
     }
 
     private function mutasiMilikSendiri(MutasiBarang $mutasi): MutasiBarang
@@ -158,8 +184,26 @@ class MutasiController extends Controller
     public function edit(MutasiBarang $mutasi)
     {
         $mutasi     = $this->mutasiMilikSendiri($mutasi);
-        $barangList = Barang::orderBy('nama_barang')->get();
-        $gudang     = auth()->user()->gudang;
+        $gudangId   = $this->gudangId();
+        $barangList = Barang::with(['stokBarang' => function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            }])
+            ->orderBy('nama_barang')
+            ->get();
+
+        // Stok efektif = stok saat ini + jumlah mutasi lama (kalau barang & arahnya sama),
+        // karena efek mutasi lama ini akan "dibalikkan dulu" sebelum yang baru diterapkan.
+        $barangList->each(function ($b) use ($mutasi) {
+            $stokSaatIni = $b->stokBarang->first()->jumlah ?? 0;
+
+            if ($b->id == $mutasi->barang_id && $mutasi->area === 'keluar') {
+                $stokSaatIni += $mutasi->jumlah;
+            }
+
+            $b->stok_saat_ini = $stokSaatIni;
+        });
+
+        $gudang = auth()->user()->gudang;
 
         return view('upt.mutasi.edit', compact('mutasi', 'barangList', 'gudang'));
     }
@@ -178,8 +222,11 @@ class MutasiController extends Controller
             'keterangan' => 'nullable|string|max:255',
         ]);
 
-        DB::transaction(function () use ($validated, $mutasi, $gudangId) {
-            $stokLama = StokBarang::firstOrCreate(
+        $disesuaikan = false;
+
+        DB::transaction(function () use ($validated, $mutasi, $gudangId, &$disesuaikan) {
+            // Balikkan efek mutasi lama ke stok barang lama.
+            $stokLama = StokBarang::lockForUpdate()->firstOrCreate(
                 ['barang_id' => $mutasi->barang_id, 'gudang_id' => $gudangId],
                 ['jumlah' => 0]
             );
@@ -189,15 +236,29 @@ class MutasiController extends Controller
                 $stokLama->decrement('jumlah', $mutasi->jumlah);
             }
 
-            $stokBaru = StokBarang::firstOrCreate(
+            // Terapkan efek mutasi baru ke stok barang baru.
+            $stokBaru = StokBarang::lockForUpdate()->firstOrCreate(
                 ['barang_id' => $validated['barang_id'], 'gudang_id' => $gudangId],
                 ['jumlah' => 0]
             );
+
+            $jumlah = $validated['jumlah'];
+
             if ($validated['arah'] === 'keluar') {
-                abort_if($stokBaru->jumlah < $validated['jumlah'], 422, 'Stok tidak mencukupi untuk mutasi keluar ini.');
-                $stokBaru->decrement('jumlah', $validated['jumlah']);
+                if ($stokBaru->jumlah <= 0) {
+                    throw ValidationException::withMessages([
+                        'jumlah' => 'Stok barang ini sudah habis di gudang anda, tidak bisa dikeluarkan.',
+                    ]);
+                }
+
+                if ($jumlah > $stokBaru->jumlah) {
+                    $jumlah = $stokBaru->jumlah;
+                    $disesuaikan = true;
+                }
+
+                $stokBaru->decrement('jumlah', $jumlah);
             } else {
-                $stokBaru->increment('jumlah', $validated['jumlah']);
+                $stokBaru->increment('jumlah', $jumlah);
             }
 
             $mutasi->update([
@@ -205,14 +266,16 @@ class MutasiController extends Controller
                 'tanggal'    => $validated['tanggal'],
                 'jam'        => $validated['jam'],
                 'area'       => $validated['arah'],
-                'jumlah'     => $validated['jumlah'],
+                'jumlah'     => $jumlah,
                 'keterangan' => $validated['keterangan'] ?? null,
             ]);
         });
 
-        return redirect()
-            ->route('upt.mutasi.index')
-            ->with('success', 'Mutasi barang berhasil diperbarui.');
+        $redirect = redirect()->route('upt.mutasi.index');
+
+        return $disesuaikan
+            ? $redirect->with('warning', 'Jumlah yang kamu masukkan melebihi stok tersedia, jadi otomatis disesuaikan ke jumlah maksimal yang ada di gudang.')
+            : $redirect->with('success', 'Mutasi barang berhasil diperbarui.');
     }
 
     public function destroy(MutasiBarang $mutasi)

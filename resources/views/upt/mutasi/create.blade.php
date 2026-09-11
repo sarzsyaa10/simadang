@@ -31,14 +31,20 @@
 
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Barang</label>
-                <select name="barang_id" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                <select name="barang_id" id="barang_id" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
                     <option value="">Pilih Barang</option>
                     @foreach ($barangList as $b)
-                        <option value="{{ $b->id }}" @selected(old('barang_id') == $b->id)>{{ $b->nama_barang }} ({{ $b->satuan }})</option>
+                        <option value="{{ $b->id }}"
+                                data-stok="{{ $b->stok_saat_ini ?? '' }}"
+                                data-satuan="{{ $b->satuan }}"
+                                @selected(old('barang_id') == $b->id)>
+                            {{ $b->nama_barang }} ({{ $b->satuan }})
+                        </option>
                     @endforeach
                 </select>
                 @if ($arah === 'keluar')
                     <p class="text-xs text-gray-400 mt-1">Hanya menampilkan barang yang stoknya tersedia di gudang anda.</p>
+                    <p id="stok-tersedia-hint" class="text-xs font-semibold text-blue-700 mt-1 hidden"></p>
                 @endif
                 @error('barang_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
             </div>
@@ -60,10 +66,50 @@
 
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Jumlah Barang</label>
-                <input type="number" name="jumlah" min="1" value="{{ old('jumlah') }}" required
+                <input type="number" name="jumlah" id="jumlah" min="1" value="{{ old('jumlah') }}" required
                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
                 @error('jumlah') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
             </div>
+
+            @if ($arah === 'keluar')
+                <script>
+                    (function () {
+                        var selectBarang = document.getElementById('barang_id');
+                        var inputJumlah  = document.getElementById('jumlah');
+                        var hint         = document.getElementById('stok-tersedia-hint');
+
+                        function terapkanBatas() {
+                            var opt   = selectBarang.options[selectBarang.selectedIndex];
+                            var stok  = opt ? parseInt(opt.getAttribute('data-stok'), 10) : NaN;
+                            var satuan = opt ? opt.getAttribute('data-satuan') : '';
+
+                            if (!isNaN(stok)) {
+                                inputJumlah.setAttribute('max', stok);
+                                hint.textContent = 'Stok tersedia: ' + stok + ' ' + satuan;
+                                hint.classList.remove('hidden');
+                            } else {
+                                inputJumlah.removeAttribute('max');
+                                hint.classList.add('hidden');
+                            }
+                        }
+
+                        function clampJumlah() {
+                            var max = parseInt(inputJumlah.getAttribute('max'), 10);
+                            if (!isNaN(max) && inputJumlah.value !== '' && parseInt(inputJumlah.value, 10) > max) {
+                                inputJumlah.value = max;
+                            }
+                        }
+
+                        selectBarang.addEventListener('change', function () {
+                            terapkanBatas();
+                            clampJumlah();
+                        });
+                        inputJumlah.addEventListener('input', clampJumlah);
+
+                        terapkanBatas();
+                    })();
+                </script>
+            @endif
 
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Keterangan</label>
