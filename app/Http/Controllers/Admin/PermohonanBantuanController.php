@@ -14,6 +14,7 @@ class PermohonanBantuanController extends Controller
         $search = $request->query('search');
 
         $permohonan = PermohonanBantuan::with('permohonanBantuanDetail.barang')
+            ->withCount('suratDistribusi')
             ->when($search, function ($query, $search) {
                 $query->where('nama_pemohon', 'like', "%{$search}%")
                     ->orWhere('jabatan', 'like', "%{$search}%")
@@ -29,7 +30,12 @@ class PermohonanBantuanController extends Controller
 
     public function show(PermohonanBantuan $permohonan_bantuan)
     {
-        $permohonan_bantuan->load('permohonanBantuanDetail.barang', 'verifikator');
+        $permohonan_bantuan->load([
+            'permohonanBantuanDetail.barang.stokBarang' => function ($query) {
+                $query->whereHas('gudang', fn ($g) => $g->gudangUtama())->with('gudang');
+            },
+            'verifikator',
+        ]);
 
         return view('admin.permohonan-bantuan.show', [
             'permohonan' => $permohonan_bantuan,

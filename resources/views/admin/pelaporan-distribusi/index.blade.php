@@ -74,7 +74,7 @@
                     <td class="p-4">
                         @if($item->scan_surat)
                             <a href="{{ asset('storage/'.$item->scan_surat) }}" target="_blank"
-                               class="text-blue-700 underline hover:text-blue-900">{{ basename($item->scan_surat) }}</a>
+                               class="text-blue-700 underline hover:text-blue-900">{{ $item->scan_surat_nama_asli ?: basename($item->scan_surat) }}</a>
                         @else
                             <span class="text-gray-400">-</span>
                         @endif
@@ -82,7 +82,7 @@
                     <td class="p-4">
                         @if($item->bukti_foto)
                             <a href="{{ asset('storage/'.$item->bukti_foto) }}" target="_blank"
-                               class="text-blue-700 underline hover:text-blue-900">{{ basename($item->bukti_foto) }}</a>
+                               class="text-blue-700 underline hover:text-blue-900">{{ $item->bukti_foto_nama_asli ?: basename($item->bukti_foto) }}</a>
                         @else
                             <span class="text-gray-400">-</span>
                         @endif

@@ -75,6 +75,7 @@ Route::middleware('role.admin')->prefix('admin')->name('admin.')->group(function
     Route::get('/distribusi/create', [AdminDistribusiController::class, 'create'])->name('distribusi.create');
     Route::post('/distribusi', [AdminDistribusiController::class, 'store'])->name('distribusi.store');
     Route::get('/distribusi/{distribusi}', [AdminDistribusiController::class, 'show'])->name('distribusi.show');
+    Route::get('/distribusi/{distribusi}/cetak', [AdminDistribusiController::class, 'cetak'])->name('distribusi.cetak');
     Route::get('/distribusi/{distribusi}/edit', [AdminDistribusiController::class, 'edit'])->name('distribusi.edit');
     Route::put('/distribusi/{distribusi}', [AdminDistribusiController::class, 'update'])->name('distribusi.update');
     Route::delete('/distribusi/{distribusi}', [AdminDistribusiController::class, 'destroy'])->name('distribusi.destroy');
@@ -87,8 +88,6 @@ Route::middleware('role.admin')->prefix('admin')->name('admin.')->group(function
 
     Route::get('/distribusi-pelaporan', [AdminPelaporanDistribusiController::class, 'index'])->name('distribusi.pelaporan');
     Route::get('/distribusi-pelaporan/{pelaporan}', [AdminPelaporanDistribusiController::class, 'show'])->name('distribusi.pelaporan.show');
-    Route::post('/distribusi-pelaporan/{pelaporan}/terima', [AdminPelaporanDistribusiController::class, 'terima'])->name('distribusi.pelaporan.terima');
-    Route::post('/distribusi-pelaporan/{pelaporan}/tolak', [AdminPelaporanDistribusiController::class, 'tolak'])->name('distribusi.pelaporan.tolak');
 
     Route::get('/data-user', fn () => 'Data User — akan kita buat nanti')->name('data-user.index');
     Route::get('/data-gudang', fn () => 'Data Gudang — akan kita buat nanti')->name('data-gudang.index');

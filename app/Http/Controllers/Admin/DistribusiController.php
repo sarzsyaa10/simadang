@@ -7,6 +7,8 @@ use App\Models\Barang;
 use App\Models\DistribusiDetail;
 use App\Models\Gudang;
 use App\Models\MutasiBarang;
+use App\Models\PengaturanSistem;
+use App\Models\PermohonanBantuan;
 use App\Models\StokBarang;
 use App\Models\SuratDistribusi;
 use Illuminate\Http\Request;
@@ -35,44 +37,101 @@ class DistribusiController extends Controller
         return view('admin.distribusi.index', compact('distribusi', 'search', 'perPage'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        // Distribusi cuma boleh keluar dari Gudang Induk & Gudang Radjiman,
+        // bukan dari gudang UPT.
+        $gudangList = Gudang::gudangUtama()->orderBy('nama_gudang')->get();
+        $gudangUptList = Gudang::gudangUpt()->orderBy('nama_gudang')->get();
         $barangList = Barang::orderBy('nama_barang')->get();
-        $gudangList = Gudang::orderBy('nama_gudang')->get();
 
-        return view('admin.distribusi.create', compact('barangList', 'gudangList'));
+        // Peta stok per gudang, dipakai JS (Alpine) buat filter dropdown
+        // barang sesuai gudang yang dipilih di tiap baris item, dan biar
+        // gak bisa milih barang yang stoknya 0 di gudang itu.
+        $stokMap = StokBarang::with('barang')
+            ->whereIn('gudang_id', $gudangList->pluck('id'))
+            ->where('jumlah', '>', 0)
+            ->get()
+            ->groupBy('gudang_id')
+            ->map(function ($rows) {
+                return $rows->map(fn ($s) => [
+                    'barang_id'   => $s->barang_id,
+                    'nama_barang' => $s->barang->nama_barang,
+                    'satuan'      => $s->barang->satuan,
+                    'jumlah'      => $s->jumlah,
+                ])->values();
+            });
+
+        // Kalau datang dari halaman Permohonan Bantuan (tombol "Buat Surat
+        // Distribusi"), pre-fill daftar barang dari item yang sudah
+        // disetujui, biar Admin tinggal pilih gudang asalnya. Gudang tujuan
+        // (gudang UPT si pemohon) juga otomatis kekunci dari situ, biar
+        // pelaporan distribusi di sisi UPT bisa nyambung ke surat ini.
+        $permohonan = null;
+        $prefillItems = collect();
+        $gudangTujuanId = null;
+
+        if ($request->filled('permohonan_bantuan_id')) {
+            $permohonan = PermohonanBantuan::with('permohonanBantuanDetail.barang', 'user')
+                ->whereIn('status', ['disetujui', 'sebagian'])
+                ->find($request->get('permohonan_bantuan_id'));
+
+            if ($permohonan) {
+                $prefillItems = $permohonan->permohonanBantuanDetail
+                    ->where('status', 'disetujui')
+                    ->map(fn ($d) => [
+                        'barang_id'   => $d->barang_id,
+                        'nama_barang' => $d->barang->nama_barang ?? '-',
+                        'satuan'      => $d->barang->satuan ?? '',
+                        'jumlah'      => $d->jumlah,
+                    ])->values();
+
+                $gudangTujuanId = $permohonan->user->gudang_id ?? null;
+            }
+        }
+
+        return view('admin.distribusi.create', compact(
+            'barangList', 'gudangList', 'gudangUptList', 'stokMap', 'permohonan', 'prefillItems', 'gudangTujuanId'
+        ));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nomor_surat'         => 'required|string|max:100|unique:surat_distribusi,nomor_surat',
-            'tanggal'             => 'required|date',
-            'jam'                 => 'required',
-            'kendaraan'           => 'nullable|string|max:100',
-            'tujuan'              => 'nullable|string|max:150',
-            'petugas'             => 'nullable|string|max:150',
-            'items'               => 'required|array|min:1',
-            'items.*.barang_id'   => 'required|exists:barang,id',
-            'items.*.gudang_id'   => 'required|exists:gudang,id',
-            'items.*.jumlah'      => 'required|integer|min:1',
-            'items.*.keterangan'  => 'nullable|string|max:255',
+            'nomor_surat'            => 'required|string|max:100|unique:surat_distribusi,nomor_surat',
+            'tanggal'                => 'required|date',
+            'jam'                    => 'required',
+            'kendaraan'              => 'nullable|string|max:100',
+            'tujuan'                 => 'nullable|string|max:150',
+            'tingkat_posko'          => 'nullable|string|max:100',
+            'petugas'                => 'nullable|string|max:150',
+            'permohonan_bantuan_id'  => 'nullable|exists:permohonan_bantuan,id',
+            'gudang_tujuan_id'       => 'nullable|exists:gudang,id',
+            'items'                  => 'required|array|min:1',
+            'items.*.barang_id'      => 'required|exists:barang,id',
+            'items.*.gudang_id'      => 'required|exists:gudang,id',
+            'items.*.jumlah'         => 'required|integer|min:1',
+            'items.*.sumber'         => 'nullable|string|max:100',
+            'items.*.keterangan'     => 'nullable|string|max:255',
         ]);
 
         try {
             $surat = DB::transaction(function () use ($validated) {
                 $surat = SuratDistribusi::create([
-                    'nomor_surat' => $validated['nomor_surat'],
-                    'tanggal'     => $validated['tanggal'],
-                    'jam'         => $validated['jam'],
-                    'kendaraan'   => $validated['kendaraan'] ?? null,
-                    'tujuan'      => $validated['tujuan'] ?? null,
-                    'petugas'     => $validated['petugas'] ?? null,
-                    'user_id'     => auth()->id(),
+                    'nomor_surat'           => $validated['nomor_surat'],
+                    'tanggal'               => $validated['tanggal'],
+                    'jam'                   => $validated['jam'],
+                    'kendaraan'             => $validated['kendaraan'] ?? null,
+                    'tujuan'                => $validated['tujuan'] ?? null,
+                    'tingkat_posko'         => $validated['tingkat_posko'] ?? null,
+                    'petugas'               => $validated['petugas'] ?? null,
+                    'user_id'               => auth()->id(),
+                    'permohonan_bantuan_id' => $validated['permohonan_bantuan_id'] ?? null,
+                    'gudang_tujuan_id'      => $validated['gudang_tujuan_id'] ?? null,
                 ]);
 
                 foreach ($validated['items'] as $item) {
-                    $this->keluarkanStok($surat, $item['barang_id'], $item['gudang_id'], $item['jumlah'], $item['keterangan'] ?? null, $validated['tanggal'], $validated['jam']);
+                    $this->keluarkanStok($surat, $item['barang_id'], $item['gudang_id'], $item['jumlah'], $item['sumber'] ?? null, $item['keterangan'] ?? null, $validated['tanggal'], $validated['jam']);
                 }
 
                 return $surat;
@@ -88,7 +147,7 @@ class DistribusiController extends Controller
 
     public function show(Request $request, SuratDistribusi $distribusi)
     {
-        $distribusi->load(['user', 'pelaporanDistribusi']);
+        $distribusi->load(['user', 'pelaporanDistribusi', 'permohonanBantuan']);
 
         $itemSearch = $request->get('item_search');
         $itemPerPage = (int) $request->get('item_per_page', 10);
@@ -110,18 +169,22 @@ class DistribusiController extends Controller
 
     public function edit(SuratDistribusi $distribusi)
     {
-        return view('admin.distribusi.edit', compact('distribusi'));
+        $gudangUptList = Gudang::gudangUpt()->orderBy('nama_gudang')->get();
+
+        return view('admin.distribusi.edit', compact('distribusi', 'gudangUptList'));
     }
 
     public function update(Request $request, SuratDistribusi $distribusi)
     {
         $validated = $request->validate([
-            'nomor_surat' => 'required|string|max:100|unique:surat_distribusi,nomor_surat,' . $distribusi->id,
-            'tanggal'     => 'required|date',
-            'jam'         => 'required',
-            'kendaraan'   => 'nullable|string|max:100',
-            'tujuan'      => 'nullable|string|max:150',
-            'petugas'     => 'nullable|string|max:150',
+            'nomor_surat'      => 'required|string|max:100|unique:surat_distribusi,nomor_surat,' . $distribusi->id,
+            'tanggal'          => 'required|date',
+            'jam'              => 'required',
+            'kendaraan'        => 'nullable|string|max:100',
+            'tujuan'           => 'nullable|string|max:150',
+            'tingkat_posko'    => 'nullable|string|max:100',
+            'petugas'          => 'nullable|string|max:150',
+            'gudang_tujuan_id' => 'nullable|exists:gudang,id',
         ]);
 
         $distribusi->update($validated);
@@ -146,14 +209,28 @@ class DistribusiController extends Controller
             ->with('success', 'Surat distribusi berhasil dihapus dan stok dikembalikan.');
     }
 
+    public function cetak(SuratDistribusi $distribusi)
+    {
+        $distribusi->load(['distribusiDetail.barang', 'distribusiDetail.gudang']);
+        $pengaturan = PengaturanSistem::current();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.distribusi.cetak', compact('distribusi', 'pengaturan'))
+            ->setPaper('a4', 'portrait');
+
+        $namaFile = str_replace(['/', '\\'], '-', $distribusi->nomor_surat);
+        $namaFile = preg_replace('/\s+/', ' ', trim($namaFile));
+
+        return $pdf->stream('Surat-Distribusi-' . $namaFile . '.pdf');
+    }
+
     // ---------------------------------------------------------
     // Item / Distribusi Detail
     // ---------------------------------------------------------
 
     public function createDetail(SuratDistribusi $distribusi)
     {
-        $barangList = Barang::orderBy('nama_barang')->get();
-        $gudangList = Gudang::orderBy('nama_gudang')->get();
+        $barangList = $this->getBarangListWithStok();
+        $gudangList = Gudang::gudangUtama()->orderBy('nama_gudang')->get();
 
         return view('admin.distribusi.detail-create', compact('distribusi', 'barangList', 'gudangList'));
     }
@@ -166,12 +243,13 @@ class DistribusiController extends Controller
             'tanggal'    => 'required|date',
             'jam'        => 'required',
             'jumlah'     => 'required|integer|min:1',
+            'sumber'     => 'nullable|string|max:100',
             'keterangan' => 'nullable|string|max:255',
         ]);
 
         try {
             DB::transaction(function () use ($distribusi, $validated) {
-                $this->keluarkanStok($distribusi, $validated['barang_id'], $validated['gudang_id'], $validated['jumlah'], $validated['keterangan'] ?? null, $validated['tanggal'], $validated['jam']);
+                $this->keluarkanStok($distribusi, $validated['barang_id'], $validated['gudang_id'], $validated['jumlah'], $validated['sumber'] ?? null, $validated['keterangan'] ?? null, $validated['tanggal'], $validated['jam']);
             });
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['jumlah' => $e->getMessage()]);
@@ -184,8 +262,16 @@ class DistribusiController extends Controller
 
     public function editDetail(SuratDistribusi $distribusi, DistribusiDetail $detail)
     {
-        $barangList = Barang::orderBy('nama_barang')->get();
-        $gudangList = Gudang::orderBy('nama_gudang')->get();
+        $barangList = $this->getBarangListWithStok();
+
+        // Kalau barang yang lagi dipilih sekarang stoknya udah 0 (misal habis
+        // dipakai di transaksi lain), tetap masukkan ke list biar dropdown
+        // gak kehilangan opsi yang sedang aktif.
+        if (! $barangList->contains('id', $detail->barang_id)) {
+            $barangList = $barangList->push($detail->barang)->sortBy('nama_barang')->values();
+        }
+
+        $gudangList = Gudang::gudangUtama()->orderBy('nama_gudang')->get();
 
         return view('admin.distribusi.detail-edit', compact('distribusi', 'detail', 'barangList', 'gudangList'));
     }
@@ -198,6 +284,7 @@ class DistribusiController extends Controller
             'tanggal'    => 'required|date',
             'jam'        => 'required',
             'jumlah'     => 'required|integer|min:1',
+            'sumber'     => 'nullable|string|max:100',
             'keterangan' => 'nullable|string|max:255',
         ]);
 
@@ -207,7 +294,7 @@ class DistribusiController extends Controller
                 $this->kembalikanStok($detail);
                 $detail->delete();
 
-                $this->keluarkanStok($distribusi, $validated['barang_id'], $validated['gudang_id'], $validated['jumlah'], $validated['keterangan'] ?? null, $validated['tanggal'], $validated['jam']);
+                $this->keluarkanStok($distribusi, $validated['barang_id'], $validated['gudang_id'], $validated['jumlah'], $validated['sumber'] ?? null, $validated['keterangan'] ?? null, $validated['tanggal'], $validated['jam']);
             });
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['jumlah' => $e->getMessage()]);
@@ -234,7 +321,26 @@ class DistribusiController extends Controller
     // Helper stok & mutasi
     // ---------------------------------------------------------
 
-    protected function keluarkanStok(SuratDistribusi $surat, int $barangId, int $gudangId, int $jumlah, ?string $keterangan, string $tanggal, string $jam): void
+    /**
+     * Barang yang stoknya masih tersedia (>0) di Gudang Induk atau Radjiman.
+     * Dipakai di form Tambah/Edit item Distribusi biar Admin gak bisa milih
+     * barang yang stoknya kosong di gudang admin.
+     */
+    protected function getBarangListWithStok()
+    {
+        $adminGudangIds = Gudang::gudangUtama()->pluck('id');
+
+        return Barang::whereHas('stokBarang', function ($q) use ($adminGudangIds) {
+            $q->whereIn('gudang_id', $adminGudangIds)->where('jumlah', '>', 0);
+        })
+        ->with(['stokBarang' => function ($q) use ($adminGudangIds) {
+            $q->whereIn('gudang_id', $adminGudangIds);
+        }])
+        ->orderBy('nama_barang')
+        ->get();
+    }
+
+    protected function keluarkanStok(SuratDistribusi $surat, int $barangId, int $gudangId, int $jumlah, ?string $sumber, ?string $keterangan, string $tanggal, string $jam): void
     {
         $stok = StokBarang::where('barang_id', $barangId)->where('gudang_id', $gudangId)->first();
 
@@ -251,6 +357,7 @@ class DistribusiController extends Controller
             'barang_id'           => $barangId,
             'gudang_id'           => $gudangId,
             'jumlah'              => $jumlah,
+            'sumber'              => $sumber,
             'keterangan'          => $keterangan,
         ]);
 

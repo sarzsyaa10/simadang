@@ -114,18 +114,40 @@
                             <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold {{ $badge }}">{{ $label }}</span>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
-                                <a href="{{ route('admin.permohonan.show', $item->id) }}" title="Lihat / Verifikasi" class="text-gray-500 hover:text-gray-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('admin.permohonan.show', $item->id) }}" title="Lihat / Verifikasi"
+                                   class="w-8 h-8 flex items-center justify-center rounded-md border border-green-500 text-green-600 hover:bg-green-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
                                         <circle cx="12" cy="12" r="3" />
                                     </svg>
                                 </a>
+                                @if (in_array($item->status, ['disetujui', 'sebagian']))
+                                    @if ($item->surat_distribusi_count > 0)
+                                        <span title="Surat distribusi sudah dibuat"
+                                              class="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-300 cursor-not-allowed">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 3h15v13H1z" /><path d="M16 8h4l3 3v5h-7V8Z" />
+                                                <circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
+                                            </svg>
+                                        </span>
+                                    @else
+                                        <a href="{{ route('admin.distribusi.create', ['permohonan_bantuan_id' => $item->id]) }}"
+                                           title="Buat Surat Distribusi"
+                                           class="w-8 h-8 flex items-center justify-center rounded-md border border-blue-400 text-blue-600 hover:bg-blue-50">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 3h15v13H1z" /><path d="M16 8h4l3 3v5h-7V8Z" />
+                                                <circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
+                                            </svg>
+                                        </a>
+                                    @endif
+                                @endif
                                 <form method="POST" action="{{ route('admin.permohonan.destroy', $item->id) }}"
                                       onsubmit="return confirm('Yakin hapus permohonan ini?')">
                                     @csrf @method('DELETE')
-                                    <button type="submit" title="Hapus" class="text-red-500 hover:text-red-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <button type="submit" title="Hapus"
+                                            class="w-8 h-8 flex items-center justify-center rounded-md border border-red-500 text-red-600 hover:bg-red-50">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
                                             <path d="M10 11v6" /><path d="M14 11v6" />

@@ -34,9 +34,7 @@ class PelaporanDistribusiController extends Controller
         $gudangId = auth()->user()->gudang_id;
 
         // Surat distribusi yang ditujukan ke gudang UPT ini, dan BELUM pernah dilaporkan
-        $suratList = SuratDistribusi::whereHas('distribusiDetail', function ($q) use ($gudangId) {
-                $q->where('gudang_id', $gudangId);
-            })
+        $suratList = SuratDistribusi::where('gudang_tujuan_id', $gudangId)
             ->whereDoesntHave('pelaporanDistribusi')
             ->orderByDesc('tanggal')
             ->get();
@@ -58,15 +56,20 @@ class PelaporanDistribusiController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        $scanPath = $request->file('scan_surat')->store('pelaporan-distribusi/surat', 'public');
-        $fotoPath = $request->file('bukti_foto')->store('pelaporan-distribusi/foto', 'public');
+        $scanFile = $request->file('scan_surat');
+        $fotoFile = $request->file('bukti_foto');
+
+        $scanPath = $scanFile->storeAs('pelaporan-distribusi/surat', $this->namaFileRapi($scanFile), 'public');
+        $fotoPath = $fotoFile->storeAs('pelaporan-distribusi/foto', $this->namaFileRapi($fotoFile), 'public');
 
         PelaporanDistribusi::create([
             'surat_distribusi_id' => $request->surat_distribusi_id,
             'tanggal_lapor' => $request->tanggal_lapor,
             'nama_upt' => auth()->user()->gudang->nama_gudang ?? auth()->user()->nama,
             'scan_surat' => $scanPath,
+            'scan_surat_nama_asli' => $scanFile->getClientOriginalName(),
             'bukti_foto' => $fotoPath,
+            'bukti_foto_nama_asli' => $fotoFile->getClientOriginalName(),
             'koordinat' => $request->koordinat,
             'keterangan' => $request->keterangan,
             'user_id' => auth()->id(),
@@ -82,9 +85,7 @@ class PelaporanDistribusiController extends Controller
         $gudangId = auth()->user()->gudang_id;
 
         // Surat yang belum dilaporkan + suratnya sendiri (biar tetap muncul di dropdown pas edit)
-        $suratList = SuratDistribusi::whereHas('distribusiDetail', function ($q) use ($gudangId) {
-                $q->where('gudang_id', $gudangId);
-            })
+        $suratList = SuratDistribusi::where('gudang_tujuan_id', $gudangId)
             ->where(function ($q) use ($pelaporan) {
                 $q->whereDoesntHave('pelaporanDistribusi')
                 ->orWhere('id', $pelaporan->surat_distribusi_id);
@@ -123,14 +124,18 @@ class PelaporanDistribusiController extends Controller
             if ($pelaporan->scan_surat) {
                 Storage::disk('public')->delete($pelaporan->scan_surat);
             }
-            $data['scan_surat'] = $request->file('scan_surat')->store('pelaporan-distribusi/surat', 'public');
+            $scanFile = $request->file('scan_surat');
+            $data['scan_surat'] = $scanFile->storeAs('pelaporan-distribusi/surat', $this->namaFileRapi($scanFile), 'public');
+            $data['scan_surat_nama_asli'] = $scanFile->getClientOriginalName();
         }
 
         if ($request->hasFile('bukti_foto')) {
             if ($pelaporan->bukti_foto) {
                 Storage::disk('public')->delete($pelaporan->bukti_foto);
             }
-            $data['bukti_foto'] = $request->file('bukti_foto')->store('pelaporan-distribusi/foto', 'public');
+            $fotoFile = $request->file('bukti_foto');
+            $data['bukti_foto'] = $fotoFile->storeAs('pelaporan-distribusi/foto', $this->namaFileRapi($fotoFile), 'public');
+            $data['bukti_foto_nama_asli'] = $fotoFile->getClientOriginalName();
         }
 
         $pelaporan->update($data);
@@ -152,5 +157,16 @@ class PelaporanDistribusiController extends Controller
         $pelaporan->delete();
 
         return redirect()->route('upt.distribusi.pelaporan.index')->with('success', 'Pelaporan distribusi berhasil dihapus.');
+    }
+
+    private function namaFileRapi($file): string
+    {
+        $namaAsli = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $ekstensi = $file->getClientOriginalExtension();
+
+        $namaBersih = preg_replace('/[^A-Za-z0-9\-_ ]/', '', $namaAsli);
+        $namaBersih = trim($namaBersih) ?: 'file';
+
+        return time() . '_' . $namaBersih . '.' . $ekstensi;
     }
 }

@@ -33,7 +33,9 @@
                 <select name="barang_id" class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-900" required>
                     <option value="">Pilih Barang</option>
                     @foreach($barangList as $b)
-                        <option value="{{ $b->id }}" {{ old('barang_id') == $b->id ? 'selected' : '' }}>{{ $b->nama_barang }} ({{ $b->satuan }})</option>
+                        <option value="{{ $b->id }}" {{ old('barang_id') == $b->id ? 'selected' : '' }}>
+                            {{ $b->nama_barang }} ({{ $b->satuan }}) — stok: {{ $b->stokBarang->sum('jumlah') }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -65,6 +67,12 @@
                 <label class="block font-semibold text-gray-800 mb-1.5">Jumlah Barang:</label>
                 <input type="number" name="jumlah" min="1" placeholder="Jumlah" value="{{ old('jumlah') }}"
                     class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-900" required>
+            </div>
+
+            <div>
+                <label class="block font-semibold text-gray-800 mb-1.5">Sumber:</label>
+                <input type="text" name="sumber" placeholder="Contoh: BNPB, APBD, BPBD Provinsi" value="{{ old('sumber') }}"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-900">
             </div>
 
             <div>

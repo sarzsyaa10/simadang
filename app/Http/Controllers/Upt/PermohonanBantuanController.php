@@ -37,7 +37,7 @@ class PermohonanBantuanController extends Controller
 
     private function getBarangList()
     {
-        $adminGudangIds = \App\Models\Gudang::whereIn('nama_gudang', ['Gudang Induk', 'Gudang Radjiman'])->pluck('id');
+        $adminGudangIds = \App\Models\Gudang::gudangUtama()->pluck('id');
 
         return Barang::whereHas('stokBarang', function ($q) use ($adminGudangIds) {
             $q->whereIn('gudang_id', $adminGudangIds)->where('jumlah', '>', 0);
@@ -53,7 +53,7 @@ class PermohonanBantuanController extends Controller
     {
         return view('upt.permohonan-bantuan.create', [
             'pageTitle' => 'Permohonan Bantuan',
-            'barangList' => Barang::orderBy('nama_barang')->get(),
+            'barangList' => $this->getBarangList(),
         ]);
     }
 

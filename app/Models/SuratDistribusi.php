@@ -14,9 +14,11 @@ class SuratDistribusi extends Model
         'jam',
         'kendaraan',
         'tujuan',
+        'tingkat_posko',
         'petugas',
         'user_id',
         'permohonan_bantuan_id',
+        'gudang_tujuan_id',
     ];
 
     protected function casts(): array
@@ -44,5 +46,10 @@ class SuratDistribusi extends Model
     public function permohonanBantuan()
     {
         return $this->belongsTo(PermohonanBantuan::class, 'permohonan_bantuan_id');
+    }
+
+    public function gudangTujuan()
+    {
+        return $this->belongsTo(Gudang::class, 'gudang_tujuan_id');
     }
 }

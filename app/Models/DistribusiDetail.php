@@ -13,6 +13,7 @@ class DistribusiDetail extends Model
         'barang_id',
         'gudang_id',
         'jumlah',
+        'sumber',
         'keterangan',
     ];
 

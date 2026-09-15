@@ -10,12 +10,6 @@
     <h1 class="text-2xl font-bold text-blue-900">Distribusi</h1>
 </div>
 
-@if (session('success'))
-    <div class="mb-4 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-2.5">
-        {{ session('success') }}
-    </div>
-@endif
-
 <div class="bg-white rounded-xl shadow overflow-hidden mb-4">
     <div class="bg-[#0f1f3d] text-white px-6 py-3.5">
         <h2 class="font-semibold">Detail Distribusi Barang</h2>

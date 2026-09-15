@@ -65,6 +65,7 @@
                         <th class="p-2">Nama Barang</th>
                         <th class="p-2">Jumlah</th>
                         <th class="p-2">Satuan</th>
+                        <th class="p-2">Stok Gudang</th>
                         <th class="p-2">Status</th>
                         <th class="p-2 w-64">Tindakan</th>
                     </tr>
@@ -75,6 +76,23 @@
                             <td class="p-2 text-gray-700">{{ $detail->barang->nama_barang ?? '-' }}</td>
                             <td class="p-2 text-gray-700">{{ $detail->jumlah }}</td>
                             <td class="p-2 text-gray-700">{{ $detail->barang->satuan ?? '-' }}</td>
+                            <td class="p-2">
+                                @php
+                                    $stokRows = $detail->barang->stokBarang ?? collect();
+                                    $totalStok = $stokRows->sum('jumlah');
+                                @endphp
+                                @if ($totalStok > 0)
+                                    <div class="text-xs text-gray-600 space-y-0.5">
+                                        @foreach ($stokRows as $s)
+                                            <div>{{ $s->gudang->nama_gudang ?? '-' }}: <span class="font-semibold">{{ $s->jumlah }}</span></div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                                        Stok kosong
+                                    </span>
+                                @endif
+                            </td>
                             <td class="p-2">
                                 @php
                                     $itemBadge = match($detail->status) {
@@ -95,6 +113,9 @@
                             </td>
                             <td class="p-2">
                                 @if ($detail->status === 'pending')
+                                    @if (($detail->barang->stokBarang ?? collect())->sum('jumlah') === 0)
+                                        <p class="text-xs text-red-600 font-medium mb-1.5">⚠️ Stok kosong di Gudang Induk & Radjiman</p>
+                                    @endif
                                     <div class="flex flex-col gap-2">
                                         <!-- Form khusus Penolakan (menyimpan alasan) -->
                                         <form method="POST" action="{{ route('admin.permohonan.item.tolak', $detail->id) }}" id="form-tolak-{{ $detail->id }}">
@@ -127,7 +148,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="p-4 text-center text-gray-400">Belum ada barang.</td></tr>
+                        <tr><td colspan="6" class="p-4 text-center text-gray-400">Belum ada barang.</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -72,11 +72,10 @@
                                class="w-8 h-8 flex items-center justify-center rounded-md border border-green-500 text-green-600 hover:bg-green-50">
                                 <iconify-icon icon="mdi:eye-outline" width="16" height="16"></iconify-icon>
                             </a>
-                            <button type="button" title="Unduh Surat (segera hadir)"
-                                    onclick="alert('Fitur unduh surat distribusi belum tersedia.')"
+                            <a href="{{ route('admin.distribusi.cetak', $item->id) }}" target="_blank" title="Cetak Surat"
                                     class="w-8 h-8 flex items-center justify-center rounded-md border border-orange-400 text-orange-500 hover:bg-orange-50">
                                 <iconify-icon icon="mdi:download-outline" width="16" height="16"></iconify-icon>
-                            </button>
+                            </a>
                             <a href="{{ route('admin.distribusi.show', $item->id) }}"
                                class="w-8 h-8 flex items-center justify-center rounded-md border border-blue-400 text-blue-600 hover:bg-blue-50">
                                 <iconify-icon icon="mdi:pencil-outline" width="16" height="16"></iconify-icon>

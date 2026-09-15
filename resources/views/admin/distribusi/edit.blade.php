@@ -56,6 +56,15 @@
                     class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
             </div>
             <div>
+                <label class="block font-semibold text-gray-800 mb-1.5">Gudang Tujuan (UPT):</label>
+                <select name="gudang_tujuan_id" class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
+                    <option value="">Pilih Gudang UPT Tujuan</option>
+                    @foreach($gudangUptList as $g)
+                        <option value="{{ $g->id }}" {{ old('gudang_tujuan_id', $distribusi->gudang_tujuan_id) == $g->id ? 'selected' : '' }}>{{ $g->nama_gudang }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
                 <label class="block font-semibold text-gray-800 mb-1.5">Tujuan:</label>
                 <textarea name="tujuan" rows="3"
                     class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">{{ old('tujuan', $distribusi->tujuan) }}</textarea>

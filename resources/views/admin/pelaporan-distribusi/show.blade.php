@@ -9,7 +9,7 @@
     </a>
     <h1 class="text-2xl font-bold text-blue-900">Pelaporan Distribusi</h1>
 </div>
-<p class="text-gray-500 text-sm mb-4">Verifikasi laporan pendistribusian bantuan barang dari petugas UPT.</p>
+<p class="text-gray-500 text-sm mb-4">Detail laporan pendistribusian bantuan barang dari petugas UPT.</p>
 
 <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
     <div class="bg-[#0f1f3d] text-white px-6 py-3.5">
@@ -36,17 +36,6 @@
         <div>
             <span class="text-gray-500">Koordinat</span>
             <div class="font-semibold text-gray-800">{{ $pelaporan->koordinat ?: '-' }}</div>
-        </div>
-
-        <div>
-            <span class="text-gray-500">Status</span>
-            <div class="font-semibold">
-                @if($pelaporan->status === 'diterima')
-                    <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">Diterima</span>
-                @else
-                    <span class="px-2 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700">Pending</span>
-                @endif
-            </div>
         </div>
 
         <div class="sm:col-span-2">
@@ -106,19 +95,5 @@
             @endforelse
         </tbody>
     </table>
-
-    @if($pelaporan->status === 'pending')
-        <div class="grid grid-cols-2 gap-0">
-            <form method="POST" action="{{ route('admin.distribusi.pelaporan.tolak', $pelaporan->id) }}"
-                onsubmit="return confirm('Yakin tolak laporan ini? Data laporan akan dihapus.')">
-                @csrf
-                <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold uppercase text-sm py-3.5 tracking-wide">Tolak</button>
-            </form>
-            <form method="POST" action="{{ route('admin.distribusi.pelaporan.terima', $pelaporan->id) }}">
-                @csrf
-                <button type="submit" class="w-full bg-[#0f1f3d] hover:bg-[#16295a] text-white font-semibold uppercase text-sm py-3.5 tracking-wide">Terima</button>
-            </form>
-        </div>
-    @endif
 </div>
 @endsection
