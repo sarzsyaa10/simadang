@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\StokController as AdminStokController;
+use App\Http\Controllers\Admin\DataUserController;
+use App\Http\Controllers\Admin\DataGudangController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Upt\DashboardController;
 use App\Http\Controllers\Upt\StokController as UptStokController;
@@ -91,8 +93,14 @@ Route::middleware('role.admin')->prefix('admin')->name('admin.')->group(function
     Route::get('/distribusi', fn () => 'Distribusi (Admin) — akan kita buat nanti')->name('distribusi');
     Route::get('/distribusi/pelaporan', fn () => 'Pelaporan Distribusi (Admin) — akan kita buat nanti')->name('distribusi.pelaporan');
 
-    Route::get('/data-user', fn () => 'Data User — akan kita buat nanti')->name('data-user.index');
-    Route::get('/data-gudang', fn () => 'Data Gudang — akan kita buat nanti')->name('data-gudang.index');
+    Route::resource('data-user', DataUserController::class)
+    ->except(['show'])
+    ->parameters(['data-user' => 'dataUser']);
+
+    Route::resource('data-gudang', DataGudangController::class)
+    ->except(['show'])
+    ->parameters(['data-gudang' => 'dataGudang']);
+
     Route::get('/setting', fn () => 'Setting — akan kita buat nanti')->name('setting');
 });
 

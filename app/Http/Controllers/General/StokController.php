@@ -23,12 +23,17 @@ class StokController extends Controller
         $query = Barang::query()
             ->where('kategori', $kategori);
 
-        if ($gudangId) {
-            $query->whereHas('stokBarang', function ($q) use ($gudangId) {
-                $q->where('gudang_id', $gudangId)
-                ->where('jumlah', '>', 0);
-            });
+        $query->selectRaw(
+            'barang.*, (
+                select coalesce(sum(jumlah), 0)
+                from stok_barang
+                where stok_barang.barang_id = barang.id'
+                . ($gudangId ? ' and stok_barang.gudang_id = ?' : '') .
+            ') as stok_urut',
+            $gudangId ? [$gudangId] : []
+        );
 
+        if ($gudangId) {
             $query->with([
                 'stokBarang' => function ($q) use ($gudangId) {
                     $q->where('gudang_id', $gudangId);
@@ -43,6 +48,7 @@ class StokController extends Controller
         }
 
         $barang = $query
+            ->orderByRaw('stok_urut = 0 asc')
             ->orderBy('nama_barang', 'asc')
             ->paginate($perPage)
             ->withQueryString();
@@ -65,12 +71,10 @@ class StokController extends Controller
             $item->stok_tampil = $item->stokBarang->sum('jumlah');
 
             if ($gudangId) {
-                // Jika user memilih gudang tertentu
                 $item->gudang_label = $gudangTerpilih
                     ? $gudangTerpilih->nama_gudang
                     : 'Gudang Tidak Ditemukan';
             } else {
-                // Jika dropdown = Semua Gudang
                 $item->gudang_label = 'Semua Gudang';
             }
 
@@ -78,7 +82,6 @@ class StokController extends Controller
 
             return $item;
         });
-
 
         return view('general.stok.index', compact(
             'barang',
