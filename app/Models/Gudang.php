@@ -33,4 +33,13 @@ class Gudang extends Model
     {
         return $this->hasMany(MutasiBarang::class, 'gudang_id');
     }
+
+    public function scopeGudangUtama($query){
+        return $query->whereDoesntHave('user');
+    }
+
+    public function scopeGudangUpt($query)
+    {
+        return $query->whereHas('user');
+    }
 }

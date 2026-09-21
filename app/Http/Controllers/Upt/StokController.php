@@ -7,6 +7,7 @@ use App\Models\Barang;
 use App\Models\StokBarang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class StokController extends Controller
 {
@@ -90,12 +91,14 @@ class StokController extends Controller
         $gudangId = $this->gudangId();
 
         $validated = $request->validate([
-            'nama_barang' => 'required|string|max:150',
+            'nama_barang' => 'required|string|max:150|unique:barang,nama_barang',
             'kategori'    => 'required|in:logistik_non_permakanan,peralatan',
             'satuan'      => 'required|string|max:50',
             'stok'        => 'required|integer|min:0',
             'foto'        => 'nullable|image|max:2048',
             'deskripsi'   => 'nullable|string',
+        ], [
+            'nama_barang.unique' => 'Nama barang sudah ada, silakan gunakan menu edit stok untuk menambah jumlahnya.',
         ]);
 
         $fotoPath = null;
@@ -147,11 +150,13 @@ class StokController extends Controller
         $stokBarang = $this->stokMilikSendiri($stok);
 
         $validated = $request->validate([
-            'nama_barang' => 'required|string|max:150',
+            'nama_barang' => ['required', 'string', 'max:150', Rule::unique('barang', 'nama_barang')->ignore($stok->id)],
             'satuan'      => 'required|string|max:50',
             'stok'        => 'required|integer|min:0',
             'foto'        => 'nullable|image|max:2048',
             'deskripsi'   => 'nullable|string',
+        ], [
+            'nama_barang.unique' => 'Nama barang sudah ada, silakan gunakan nama lain.',
         ]);
 
         $fotoPath = $stok->foto;

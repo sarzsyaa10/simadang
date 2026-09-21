@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'SIMADANG - UPT')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+   <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
 </head>
 <body class="bg-gray-100" x-data="{ sidebarOpen: false }">
 

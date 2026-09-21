@@ -13,10 +13,11 @@ class PelaporanDistribusi extends Model
         'tanggal_lapor',
         'nama_upt',
         'scan_surat',
+        'scan_surat_nama_asli',
         'bukti_foto',
+        'bukti_foto_nama_asli',
         'koordinat',
         'keterangan',
-        'status',
         'user_id',
     ];
 

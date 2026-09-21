@@ -59,12 +59,12 @@
                 <span>entries</span>
             </form>
 
-            <form method="GET" class="relative w-full sm:w-72">
+            <form method="GET" id="searchForm" class="relative w-full sm:w-72">
                 @if (request('per_page'))
                     <input type="hidden" name="per_page" value="{{ request('per_page') }}">
                 @endif
                 <x-icon name="search" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="Search"
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="Search" id="searchInput" autocomplete="off"
                        class="w-full border border-gray-300 rounded pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200">
             </form>
         </div>
@@ -138,7 +138,7 @@
                     </tr>
                 </thead>
 
-                <tbody class="divide-y divide-gray-100">
+                <tbody id="mutasi-table-body" class="divide-y divide-gray-100">
                     @forelse ($mutasi as $item)
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-2.5 text-gray-700">{{ \Illuminate\Support\Carbon::parse($item->tanggal)->format('d/m/Y') }}</td>
@@ -189,4 +189,62 @@
             <x-pagination :paginator="$mutasi" />
         </div>
     </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchForm = document.getElementById('searchForm');
+        const tableBody = document.getElementById('mutasi-table-body');
+
+        let timeout;
+        let controller;
+
+        searchInput.addEventListener('input', function () {
+            clearTimeout(timeout);
+
+            timeout = setTimeout(async () => {
+                if (controller) {
+                    controller.abort();
+                }
+
+                controller = new AbortController();
+
+                const params = new URLSearchParams(new FormData(searchForm));
+
+                params.delete('page');
+
+                try {
+                    const response = await fetch(
+                        window.location.pathname + '?' + params.toString(),
+                        {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            signal: controller.signal
+                        }
+                    );
+
+                    const html = await response.text();
+
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                    const newBody = doc.querySelector('#mutasi-table-body');
+
+                    if (newBody) {
+                        tableBody.innerHTML = newBody.innerHTML;
+                    }
+
+                    window.history.replaceState(
+                        {},
+                        '',
+                        window.location.pathname + '?' + params.toString()
+                    );
+
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error('Search error:', error);
+                    }
+                }
+            }, 400);
+        });
+    </script>
 @endsection

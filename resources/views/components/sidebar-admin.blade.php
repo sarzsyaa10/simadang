@@ -8,9 +8,9 @@
             openDistribusi: {{ request()->routeIs('admin.distribusi*') ? 'true' : 'false' }}
         }">
 
-        <a href="{{ route('landing') }}"
+        <a href="{{ route('admin.beranda') }}"
            @click="sidebarOpen = false"
-           class="flex items-center gap-2.5 px-3 py-2 rounded hover:bg-white/10">
+           class="flex items-center gap-2.5 px-3 py-2 rounded {{ request()->routeIs('admin.beranda') ? 'bg-orange-500' : 'hover:bg-white/10' }}">
             <img src="{{ asset('images/icons/beranda.svg') }}" class="w-4 h-4" alt="">
             Beranda
         </a>
