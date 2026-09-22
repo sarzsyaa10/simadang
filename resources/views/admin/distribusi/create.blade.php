@@ -130,6 +130,17 @@
                 <textarea name="tujuan" rows="3" placeholder="Tujuan"
                     class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-900">{{ old('tujuan', $permohonan->alamat ?? '') }}</textarea>
             </div>
+            <div>
+                <label class="block font-semibold text-gray-800 mb-1.5">Kecamatan:</label>
+                <input type="text" name="kecamatan" value="{{ old('kecamatan') }}" placeholder="Contoh: Kec. Wanareja"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-900">
+                <p class="text-xs text-gray-400 mt-1">Dipakai buat pengelompokan di Laporan Keadaan Stok.</p>
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block font-semibold text-gray-800 mb-1.5">Perihal:</label>
+                <input type="text" name="perihal" value="{{ old('perihal') }}" placeholder="Contoh: Penanganan Longsor"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-900">
+            </div>
         </div>
 
         <div class="bg-[#0f1f3d] text-white px-6 py-3 text-xs font-semibold uppercase tracking-wide">
@@ -145,15 +156,6 @@
         <div class="px-6 pb-2">
             <template x-for="(item, index) in items" :key="index">
                 <div class="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] gap-4 items-start py-4 border-b border-gray-100">
-                    
-                    <select :name="`items[${index}][gudang_id]`" x-model="item.gudang_id"
-                            @change="if (!item.locked) item.barang_id = ''"
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-900" required>
-                        <option value="">Pilih Gudang</option>
-                        @foreach($gudangList as $g)
-                            <option value="{{ $g->id }}">{{ $g->nama_gudang }}</option>
-                        @endforeach
-                    </select>
 
                     {{-- Barang: kalau locked (dari permohonan), tampil sebagai teks tetap; kalau manual, dropdown filter sesuai gudang --}}
                     <div>
@@ -176,6 +178,15 @@
                             </p>
                         </template>
                     </div>
+
+                    <select :name="`items[${index}][gudang_id]`" x-model="item.gudang_id"
+                            @change="if (!item.locked) item.barang_id = ''"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-900" required>
+                        <option value="">Pilih Gudang</option>
+                        @foreach($gudangList as $g)
+                            <option value="{{ $g->id }}">{{ $g->nama_gudang }}</option>
+                        @endforeach
+                    </select>
 
                     <div>
                         <input type="number" min="1" placeholder="Jumlah" :name="`items[${index}][jumlah]`" x-model="item.jumlah"

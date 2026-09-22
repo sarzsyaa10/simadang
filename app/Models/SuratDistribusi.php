@@ -14,6 +14,8 @@ class SuratDistribusi extends Model
         'jam',
         'kendaraan',
         'tujuan',
+        'kecamatan',
+        'perihal',
         'tingkat_posko',
         'petugas',
         'user_id',

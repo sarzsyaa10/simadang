@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DistribusiController as AdminDistribusiController;
 use App\Http\Controllers\Admin\PelaporanDistribusiController as AdminPelaporanDistribusiController;
+use App\Http\Controllers\Admin\LaporanController as AdminLaporanController;
 use App\Http\Controllers\Admin\StokController as AdminStokController;
 use App\Http\Controllers\Admin\DataUserController;
 use App\Http\Controllers\Admin\DataGudangController;
@@ -89,7 +90,9 @@ Route::middleware('role.admin')->prefix('admin')->name('admin.')->group(function
         Route::delete('/{mutasi}', [AdminMutasiController::class, 'destroy'])->name('destroy');
     });
 
-    Route::get('/laporan', fn () => 'Laporan (Admin) — akan kita buat nanti')->name('laporan');
+    Route::get('/laporan', [AdminLaporanController::class, 'index'])->name('laporan');
+    Route::get('/laporan/export/pdf', [AdminLaporanController::class, 'exportPdf'])->name('laporan.export.pdf');
+    Route::get('/laporan/export/excel', [AdminLaporanController::class, 'exportExcel'])->name('laporan.export.excel');
 
     // Permohonan Bantuan
     Route::get('/permohonan-bantuan', [PermohonanBantuanController::class, 'index'])->name('permohonan');

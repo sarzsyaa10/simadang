@@ -39,15 +39,11 @@ class DistribusiController extends Controller
 
     public function create(Request $request)
     {
-        // Distribusi cuma boleh keluar dari Gudang Induk & Gudang Radjiman,
-        // bukan dari gudang UPT.
+        // Distribusi cuma boleh keluar dari Gudang Induk & Gudang Radjiman, bukan dari gudang UPT.
         $gudangList = Gudang::gudangUtama()->orderBy('nama_gudang')->get();
         $gudangUptList = Gudang::gudangUpt()->orderBy('nama_gudang')->get();
         $barangList = Barang::orderBy('nama_barang')->get();
 
-        // Peta stok per gudang, dipakai JS (Alpine) buat filter dropdown
-        // barang sesuai gudang yang dipilih di tiap baris item, dan biar
-        // gak bisa milih barang yang stoknya 0 di gudang itu.
         $stokMap = StokBarang::with('barang')
             ->whereIn('gudang_id', $gudangList->pluck('id'))
             ->where('jumlah', '>', 0)
@@ -62,11 +58,6 @@ class DistribusiController extends Controller
                 ])->values();
             });
 
-        // Kalau datang dari halaman Permohonan Bantuan (tombol "Buat Surat
-        // Distribusi"), pre-fill daftar barang dari item yang sudah
-        // disetujui, biar Admin tinggal pilih gudang asalnya. Gudang tujuan
-        // (gudang UPT si pemohon) juga otomatis kekunci dari situ, biar
-        // pelaporan distribusi di sisi UPT bisa nyambung ke surat ini.
         $permohonan = null;
         $prefillItems = collect();
         $gudangTujuanId = null;
@@ -103,6 +94,8 @@ class DistribusiController extends Controller
             'jam'                    => 'required',
             'kendaraan'              => 'nullable|string|max:100',
             'tujuan'                 => 'nullable|string|max:150',
+            'kecamatan'              => 'nullable|string|max:100',
+            'perihal'                => 'nullable|string|max:255',
             'tingkat_posko'          => 'nullable|string|max:100',
             'petugas'                => 'nullable|string|max:150',
             'permohonan_bantuan_id'  => 'nullable|exists:permohonan_bantuan,id',
@@ -123,6 +116,8 @@ class DistribusiController extends Controller
                     'jam'                   => $validated['jam'],
                     'kendaraan'             => $validated['kendaraan'] ?? null,
                     'tujuan'                => $validated['tujuan'] ?? null,
+                    'kecamatan'             => $validated['kecamatan'] ?? null,
+                    'perihal'               => $validated['perihal'] ?? null,
                     'tingkat_posko'         => $validated['tingkat_posko'] ?? null,
                     'petugas'               => $validated['petugas'] ?? null,
                     'user_id'               => auth()->id(),
@@ -182,6 +177,8 @@ class DistribusiController extends Controller
             'jam'              => 'required',
             'kendaraan'        => 'nullable|string|max:100',
             'tujuan'           => 'nullable|string|max:150',
+            'kecamatan'        => 'nullable|string|max:100',
+            'perihal'          => 'nullable|string|max:255',
             'tingkat_posko'    => 'nullable|string|max:100',
             'petugas'          => 'nullable|string|max:150',
             'gudang_tujuan_id' => 'nullable|exists:gudang,id',
@@ -223,10 +220,6 @@ class DistribusiController extends Controller
         return $pdf->stream('Surat-Distribusi-' . $namaFile . '.pdf');
     }
 
-    // ---------------------------------------------------------
-    // Item / Distribusi Detail
-    // ---------------------------------------------------------
-
     public function createDetail(SuratDistribusi $distribusi)
     {
         $barangList = $this->getBarangListWithStok();
@@ -264,9 +257,6 @@ class DistribusiController extends Controller
     {
         $barangList = $this->getBarangListWithStok();
 
-        // Kalau barang yang lagi dipilih sekarang stoknya udah 0 (misal habis
-        // dipakai di transaksi lain), tetap masukkan ke list biar dropdown
-        // gak kehilangan opsi yang sedang aktif.
         if (! $barangList->contains('id', $detail->barang_id)) {
             $barangList = $barangList->push($detail->barang)->sortBy('nama_barang')->values();
         }
@@ -290,7 +280,6 @@ class DistribusiController extends Controller
 
         try {
             DB::transaction(function () use ($distribusi, $detail, $validated) {
-                // Kembalikan stok lama dulu, baru keluarkan sesuai data baru
                 $this->kembalikanStok($detail);
                 $detail->delete();
 
@@ -317,15 +306,6 @@ class DistribusiController extends Controller
             ->with('success', 'Barang distribusi berhasil dihapus dan stok dikembalikan.');
     }
 
-    // ---------------------------------------------------------
-    // Helper stok & mutasi
-    // ---------------------------------------------------------
-
-    /**
-     * Barang yang stoknya masih tersedia (>0) di Gudang Induk atau Radjiman.
-     * Dipakai di form Tambah/Edit item Distribusi biar Admin gak bisa milih
-     * barang yang stoknya kosong di gudang admin.
-     */
     protected function getBarangListWithStok()
     {
         $adminGudangIds = Gudang::gudangUtama()->pluck('id');

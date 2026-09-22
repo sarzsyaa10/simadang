@@ -69,6 +69,16 @@
                 <textarea name="tujuan" rows="3"
                     class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">{{ old('tujuan', $distribusi->tujuan) }}</textarea>
             </div>
+            <div>
+                <label class="block font-semibold text-gray-800 mb-1.5">Kecamatan:</label>
+                <input type="text" name="kecamatan" value="{{ old('kecamatan', $distribusi->kecamatan) }}" placeholder="Contoh: Kec. Wanareja"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-900">
+            </div>
+            <div>
+                <label class="block font-semibold text-gray-800 mb-1.5">Perihal:</label>
+                <input type="text" name="perihal" value="{{ old('perihal', $distribusi->perihal) }}" placeholder="Contoh: Penanganan Longsor"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-900">
+            </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3 p-4 border-t border-gray-100">
