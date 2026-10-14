@@ -6,6 +6,7 @@
     <title>@yield('title', 'SIMADANG - Admin')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+    <style>[x-cloak] { display: none !important; }</style>
 </head>
 <body class="bg-gray-100" x-data="{ sidebarOpen: false }">
 

@@ -1,8 +1,17 @@
 @extends('layouts.admin')
 
-@php($pageTitle = 'Distribusi')
+@php
+    $pageTitle = 'Distribusi';
+@endphp
 
 @section('content')
+@php
+    $sortUrl = function (string $column) use ($sort, $direction) {
+        $newDirection = ($sort === $column && $direction === 'asc') ? 'desc' : 'asc';
+        return request()->fullUrlWithQuery(['sort' => $column, 'direction' => $newDirection, 'page' => 1]);
+    };
+@endphp
+
 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
     <div>
         <h1 class="text-3xl font-bold text-blue-900">Distribusi</h1>
@@ -25,6 +34,9 @@
 
 <div class="bg-white rounded-xl shadow p-5 mb-4">
     <form method="GET" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <input type="hidden" name="sort" value="{{ $sort }}">
+        <input type="hidden" name="direction" value="{{ $direction }}">
+
         <div class="flex items-center gap-2 text-sm text-gray-500">
             Show
             <select name="per_page" onchange="this.form.submit()"
@@ -50,11 +62,23 @@
     <table class="w-full text-sm">
         <thead class="bg-[#0f1f3d] text-white text-left text-xs font-semibold uppercase tracking-wide">
             <tr>
-                <th class="p-4">Tanggal</th>
-                <th class="p-4">No. Surat</th>
-                <th class="p-4">Tujuan</th>
-                <th class="p-4">Kendaraan</th>
-                <th class="p-4">Petugas</th>
+                @foreach([
+                    'tanggal'     => 'Tanggal',
+                    'nomor_surat' => 'No. Surat',
+                    'tujuan'      => 'Tujuan',
+                    'kendaraan'   => 'Kendaraan',
+                    'petugas'     => 'Petugas',
+                ] as $col => $label)
+                    <th class="p-4">
+                        <a href="{{ $sortUrl($col) }}" class="inline-flex items-center gap-1 text-white">
+                            {{ $label }}
+                            <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor" class="inline-block">
+                                <path d="M5 0L9 5H1L5 0Z"/>
+                                <path d="M5 14L1 9H9L5 14Z"/>
+                            </svg>
+                        </a>
+                    </th>
+                @endforeach
                 <th class="p-4">Tindakan</th>
             </tr>
         </thead>

@@ -8,7 +8,7 @@
     <div class="absolute inset-0 bg-black/50"></div>
     <div class="relative z-10 px-4 text-white max-w-3xl">
         <h1 class="text-3xl md:text-4xl font-bold leading-snug">
-            Sistem Manajemen Gudang dan Logistik<br>BPBD Cilacap (SIMADANG)
+            Sistem Manajemen Gudang dan Logistik<br>BPBD Cilacap (SIAP MADANG)
         </h1>
         <p class="mt-3 text-gray-200">
             Platform terpadu untuk pemantauan logistik, pengajuan bantuan, dan manajemen distribusi bencana.
@@ -32,7 +32,7 @@
         STOK
     </a>
 
-    <a href="{{ route('general.permohonan') }}"
+    <a href="{{ route('login') }}"
        class="bg-orange-500 hover:bg-orange-600 text-white rounded-md py-8 shadow-lg flex flex-col items-center gap-2 font-bold text-lg text-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
@@ -40,7 +40,7 @@
         PERMOHONAN<br>BANTUAN
     </a>
 
-    <a href="{{ route('general.distribusi') }}"
+    <a href="{{ route('login') }}"
        class="bg-blue-600 hover:bg-blue-700 text-white rounded-md py-8 shadow-lg flex flex-col items-center gap-2 font-bold text-lg">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5V13.5" />

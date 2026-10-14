@@ -17,7 +17,7 @@
         </h1>
     </div>
 
-    <div class="bg-white rounded-lg shadow p-6 max-w-2xl overflow-hidden">
+    <div class="bg-white rounded-lg shadow p-6 overflow-hidden">
         <div class="bg-[#0f1f3d] text-white px-6 py-3.5 -mx-6 -mt-6 mb-5 rounded-t-lg">
             <h2 class="font-semibold">{{ $pageTitle }}</h2>
         </div>

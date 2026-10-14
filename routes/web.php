@@ -16,6 +16,7 @@ use App\Http\Controllers\General\StokController as GeneralStokController;
 use App\Http\Controllers\Admin\MutasiController as AdminMutasiController;
 
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\PermohonanBantuanController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Upt\PermohonanBantuanController as UptPermohonanController;
@@ -68,9 +69,11 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // ==========================================
 // PROFILE (dipakai bareng Admin & UPT)
 // ==========================================
-Route::get('/profile', function () {
-    return 'Halaman Profil — akan kita buat nanti';
-})->middleware('auth')->name('profile');
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
 
 // ==========================================
 // ADMIN

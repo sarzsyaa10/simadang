@@ -5,7 +5,7 @@
 @section('content')
 <h1 class="text-2xl font-bold text-blue-900 mb-4">Pengaturan Sistem</h1>
 
-<div class="bg-white rounded shadow p-6 max-w-3xl">
+<div class="bg-white rounded shadow p-6">
     <h2 class="font-bold text-gray-700 mb-4">Ubah Pengaturan Sistem</h2>
 
     <form method="POST" action="{{ route('admin.setting.update') }}">
@@ -74,7 +74,7 @@
 
         <button type="submit"
                 class="w-full bg-blue-950 hover:bg-blue-900 text-white font-semibold py-3 rounded text-sm">
-            SIMPAN →
+            SIMPAN
         </button>
     </form>
 </div>

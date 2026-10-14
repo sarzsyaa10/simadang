@@ -12,7 +12,7 @@
             Pantau persediaan material tanggap darurat dan percepat verifikasi permohonan logistik bencana wilayah Kabupaten Cilacap.
         </p>
     </div>
-    <a href="{{ route('admin.mutasi.create.masuk') }}"
+    <a href="{{ route('admin.stok.create') }}"
        class="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-3 rounded-lg whitespace-nowrap">
         <iconify-icon icon="mdi:plus" width="18" height="18"></iconify-icon>
         Input Stok
@@ -52,7 +52,7 @@
                 <tr>
                     <th class="px-6 py-4 text-left text-sm font-semibold">Tanggal</th>
                     <th class="px-6 py-4 text-left text-sm font-semibold">Pemohon &amp; Jabatan</th>
-                    <th class="px-6 py-4 text-center text-sm font-semibold">Status</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
                 </tr>
             </thead>
             <tbody>

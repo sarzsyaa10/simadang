@@ -20,6 +20,16 @@ class DistribusiController extends Controller
     {
         $search = $request->get('search');
 
+        // Whitelist kolom yang boleh di-sort
+        $sortable = ['tanggal', 'nomor_surat', 'tujuan', 'kendaraan', 'petugas'];
+
+        $sort = $request->get('sort', 'tanggal');
+        if (! in_array($sort, $sortable, true)) {
+            $sort = 'tanggal';
+        }
+
+        $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+
         $query = SuratDistribusi::withCount('distribusiDetail')
             ->with('pelaporanDistribusi');
 
@@ -32,9 +42,18 @@ class DistribusiController extends Controller
         }
 
         $perPage = (int) $request->get('per_page', 10);
-        $distribusi = $query->latest('tanggal')->paginate($perPage)->withQueryString();
 
-        return view('admin.distribusi.index', compact('distribusi', 'search', 'perPage'));
+        $query->orderBy($sort, $direction);
+
+        // Tie-breaker supaya urutan stabil saat pagination
+        if ($sort !== 'tanggal') {
+            $query->orderBy('tanggal', 'desc');
+        }
+        $query->orderBy('id', 'desc');
+
+        $distribusi = $query->paginate($perPage)->withQueryString();
+
+        return view('admin.distribusi.index', compact('distribusi', 'search', 'perPage', 'sort', 'direction'));
     }
 
     public function create(Request $request)

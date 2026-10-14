@@ -147,7 +147,17 @@ class StokController extends Controller
             ? $query->where('id', $stokId)->first()
             : $query->first();
 
-        abort_if(!$stokBarang, 404, 'Data stok untuk barang ini tidak ditemukan.');
+        if (!$stokBarang) {
+            $gudangDefault = Gudang::orderBy('id')->first();
+
+            abort_if(!$gudangDefault, 404, 'Belum ada data gudang sama sekali di sistem.');
+
+            $stokBarang = StokBarang::create([
+                'barang_id' => $barang->id,
+                'gudang_id' => $gudangDefault->id,
+                'jumlah'    => 0,
+            ]);
+        }
 
         return $stokBarang;
     }
@@ -202,8 +212,25 @@ class StokController extends Controller
 
     public function destroy(Request $request, Barang $stok)
     {
-        $stokBarang = $this->resolveStokBarang($stok, $request->integer('stok_id') ?: null);
-        $kategori   = $stok->kategori;
+        $kategori = $stok->kategori;
+
+        if ($stok->stokBarang()->doesntExist()) {
+            if ($stok->foto) {
+                Storage::disk('public')->delete($stok->foto);
+            }
+            $stok->delete();
+
+            return redirect()
+                ->route('admin.stok.index', ['kategori' => $kategori])
+                ->with('success', 'Barang berhasil dihapus.');
+        }
+
+        $stokId     = $request->integer('stok_id') ?: null;
+        $stokBarang = $stokId
+            ? StokBarang::where('barang_id', $stok->id)->where('id', $stokId)->first()
+            : $stok->stokBarang()->first();
+
+        abort_if(!$stokBarang, 404, 'Data stok untuk barang ini tidak ditemukan.');
 
         $stokBarang->delete();
 

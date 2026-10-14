@@ -10,7 +10,7 @@
 
     <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3">
         <img src="{{ asset('images/asset/bpbd.png') }}" alt="Logo BPBD" class="w-9 h-9 object-contain">
-        <span class="text-lg font-bold text-blue-900">SIMADANG</span>
+        <span class="text-lg font-bold text-blue-900">SIAP MADANG</span>
     </header>
 
     <div class="min-h-[calc(100vh-57px)] flex items-center justify-center px-4">

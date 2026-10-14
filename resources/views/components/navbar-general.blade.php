@@ -9,7 +9,7 @@
 
         <div class="flex items-center gap-2">
             <img src="{{ asset('images/asset/bpbd.png') }}" alt="Logo BPBD" class="w-9 h-9 rounded-full">
-            <span class="font-bold text-blue-900 text-lg">SIMADANG</span>
+            <span class="font-bold text-blue-900 text-lg">SIAP MADANG</span>
         </div>
     </div>
 
@@ -18,9 +18,31 @@
             <iconify-icon icon="gg:profile" width="28" height="28"></iconify-icon>
         </a>
     @else
-        <div class="text-sm text-gray-500 flex items-center gap-2">
-            {{ auth()->user()->nama }}
-            <span class="text-xs bg-gray-100 rounded px-2 py-0.5">{{ ucfirst(auth()->user()->role) }}</span>
+        <div class="relative" x-data="{ openProfile: false }" @click.outside="openProfile = false">
+            <button @click="openProfile = !openProfile" class="flex items-center gap-2 text-gray-700 hover:text-gray-900">
+                <div class="text-sm text-gray-500 flex items-center gap-2">
+                    {{ auth()->user()->nama }}
+                    <span class="text-xs bg-gray-100 rounded px-2 py-0.5">{{ ucfirst(auth()->user()->role) }}</span>
+                </div>
+                <iconify-icon icon="gg:profile" width="28" height="28"></iconify-icon>
+            </button>
+
+            <div x-show="openProfile" x-cloak x-transition
+                 class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-30">
+                <a href="{{ route('profile') }}"
+                   class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                    <iconify-icon icon="gg:profile" width="18" height="18"></iconify-icon>
+                    Profil
+                </a>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit"
+                            class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50">
+                        <img src="{{ asset('images/icons/keluar.svg') }}" class="w-[18px] h-[18px]" alt="" style="filter: invert(45%) sepia(80%) saturate(2000%) hue-rotate(330deg);">
+                        Keluar
+                    </button>
+                </form>
+            </div>
         </div>
     @endguest
 </header>

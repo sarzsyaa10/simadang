@@ -68,7 +68,7 @@
                                     $isActive = $sort === $h['key'];
                                 @endphp
                                 <a href="{{ request()->fullUrlWithQuery(['sort' => $h['key'], 'direction' => $newDirection]) }}"
-                                class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide hover:text-orange-300">
+                                class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide">
                                     {{ $h['label'] }}
                                     <iconify-icon icon="mdi:unfold-more-horizontal" width="14" height="14" class="{{ $isActive ? 'text-orange-400' : 'opacity-70' }}"></iconify-icon>
                                 </a>

@@ -69,7 +69,7 @@
                         <th class="px-6 py-4 text-left font-bold uppercase tracking-wide text-xs whitespace-nowrap">
                             @if ($column['sortable'])
                                 <a href="{{ request()->fullUrlWithQuery(['sort' => $column['key'], 'direction' => ($currentSort === $column['key'] && $currentDir === 'asc') ? 'desc' : 'asc']) }}"
-                                   class="inline-flex items-center gap-1.5 hover:text-orange-300">
+                                   class="inline-flex items-center gap-1.5">
                                     {{ $column['label'] }}
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="m7 15 5 5 5-5" /><path d="m7 9 5-5 5 5" />
