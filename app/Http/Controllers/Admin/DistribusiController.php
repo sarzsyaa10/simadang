@@ -118,7 +118,7 @@ class DistribusiController extends Controller
             'tingkat_posko'          => 'nullable|string|max:100',
             'petugas'                => 'nullable|string|max:150',
             'permohonan_bantuan_id'  => 'nullable|exists:permohonan_bantuan,id',
-            'gudang_tujuan_id'       => 'nullable|exists:gudang,id',
+            'gudang_tujuan_id'       => 'required|exists:gudang,id',
             'items'                  => 'required|array|min:1',
             'items.*.barang_id'      => 'required|exists:barang,id',
             'items.*.gudang_id'      => 'required|exists:gudang,id',
@@ -200,7 +200,7 @@ class DistribusiController extends Controller
             'perihal'          => 'nullable|string|max:255',
             'tingkat_posko'    => 'nullable|string|max:100',
             'petugas'          => 'nullable|string|max:150',
-            'gudang_tujuan_id' => 'nullable|exists:gudang,id',
+            'gudang_tujuan_id' => 'required|exists:gudang,id',
         ]);
 
         $distribusi->update($validated);

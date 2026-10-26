@@ -108,7 +108,7 @@
                     class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-900">
             </div>
             <div>
-                <label class="block font-semibold text-gray-800 mb-1.5">Gudang Tujuan (UPT):</label>
+                <label class="block font-semibold text-gray-800 mb-1.5">Gudang Tujuan (UPT): <span class="text-red-500">*</span></label>
                 @if ($gudangTujuanId)
                     @php($gudangTujuanNama = $gudangUptList->firstWhere('id', $gudangTujuanId)?->nama_gudang)
                     <input type="hidden" name="gudang_tujuan_id" value="{{ $gudangTujuanId }}">
@@ -116,7 +116,7 @@
                         {{ $gudangTujuanNama ?? '-' }}
                     </div>
                 @else
-                    <select name="gudang_tujuan_id" class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-900">
+                    <select name="gudang_tujuan_id" required class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-900">
                         <option value="">Pilih Gudang UPT Tujuan</option>
                         @foreach($gudangUptList as $g)
                             <option value="{{ $g->id }}" {{ old('gudang_tujuan_id') == $g->id ? 'selected' : '' }}>{{ $g->nama_gudang }}</option>
@@ -125,16 +125,16 @@
                     <p class="text-xs text-gray-400 mt-1">Wajib dipilih biar UPT bisa lapor distribusi ini nanti.</p>
                 @endif
             </div>
-            <div class="sm:col-span-2">
-                <label class="block font-semibold text-gray-800 mb-1.5">Tujuan:</label>
-                <textarea name="tujuan" rows="3" placeholder="Tujuan"
-                    class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-900">{{ old('tujuan', $permohonan->alamat ?? '') }}</textarea>
-            </div>
             <div>
                 <label class="block font-semibold text-gray-800 mb-1.5">Kecamatan:</label>
                 <input type="text" name="kecamatan" value="{{ old('kecamatan') }}" placeholder="Contoh: Kec. Wanareja"
                     class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-900">
                 <p class="text-xs text-gray-400 mt-1">Dipakai buat pengelompokan di Laporan Keadaan Stok.</p>
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block font-semibold text-gray-800 mb-1.5">Tujuan:</label>
+                <textarea name="tujuan" rows="3" placeholder="Tujuan"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-900">{{ old('tujuan', $permohonan->alamat ?? '') }}</textarea>
             </div>
             <div class="sm:col-span-2">
                 <label class="block font-semibold text-gray-800 mb-1.5">Perihal:</label>

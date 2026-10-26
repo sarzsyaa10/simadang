@@ -22,14 +22,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Upt\PermohonanBantuanController as UptPermohonanController;
 use App\Http\Controllers\Upt\PelaporanDistribusiController as UptPelaporanController;
 
-// ==========================================
 // MEDIA (serve file dari storage tanpa bergantung symlink public/storage)
-// ==========================================
 Route::get('/media/{path}', [MediaController::class, 'show'])
     ->where('path', '.*')
     ->name('media.show');
 
-// ==========================================
 // LANDING / BERANDA (General - publik)
 Route::get('/', function () {
     return view('general.beranda');
@@ -66,18 +63,14 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// ==========================================
 // PROFILE (dipakai bareng Admin & UPT)
-// ==========================================
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
-// ==========================================
 // ADMIN
-// ==========================================
 Route::middleware('role.admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('beranda');
 
@@ -136,9 +129,7 @@ Route::middleware('role.admin')->prefix('admin')->name('admin.')->group(function
     Route::put('/setting', [SettingController::class, 'update'])->name('setting.update');
 });
 
-// ==========================================
 // UPT
-// ==========================================
 Route::middleware('role.upt')->prefix('upt')->name('upt.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('beranda');
 
